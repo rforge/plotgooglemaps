@@ -1,0 +1,7 @@
+#
+import(
+  lattice,
+  sp,
+  rgdal,
+  maptools)
+export(bubbleGoogleMaps,bubbleSP,ellipseGoogleMaps,elSPDF,iconlabels,pieSP,plotGoogleMaps,PolyCol,segmentGoogleMaps,stplotGoogleMaps,vectorsSP)

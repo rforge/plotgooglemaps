@@ -1,0 +1,1 @@
+stplotGM  - promjenio sam i sa index(SPT@time[i]) ,  -- ako bude nekih problema 

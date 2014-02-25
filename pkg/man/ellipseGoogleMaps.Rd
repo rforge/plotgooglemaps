@@ -1,0 +1,118 @@
+\name{ellipseGoogleMaps}
+\alias{ellipseGoogleMaps}
+\title{Create a ellipses plot from spatial points data frame on Google Maps, 
+       by using three attributes: semi-major axis,  semi-minor axis, and orientation in degrees.}
+\description{Plot htm output with Google Maps API in form of ellipses plot of spatial
+             data. Ready to use as local htm file or into your own website.}
+\usage{
+ellipseGoogleMaps(SP, 
+                  filename = '', 
+                  zcol = 1:3, 
+                  add = F, 
+                  previousMap = NULL, 
+                  scale_e = 10, 
+                  colPalette = NULL, 
+                  strokeColor = '#FFAA00', 
+                  strokeOpacity = 1, 
+                  fillOpacity=0.7,
+                  strokeWeight = 1, 
+                  geodesic = TRUE, 
+                  clickable = TRUE,  
+                  zIndex = 'null', 
+                               map.width="100\%",
+                               map.height="100\%",
+                               layerName="",
+                              control.width="100\%",
+                              control.height="100\%",
+                  zoom = 15, 
+                  fitBounds = TRUE, 
+                  mapTypeId = 'HYBRID', 
+                  disableDoubleClickZoom = FALSE, 
+                  draggable = TRUE, 
+                  keyboardShortcuts = TRUE, 
+                  mapTypeControlOptions = 'DEFAULT', 
+                  navigationControl = TRUE, 
+                  navigationControlOptions = 'DEFAULT', 
+                  scaleControlOptions = 'STANDARD', 
+                  noClear = FALSE, 
+                  scrollwheel = TRUE, 
+                  streetViewControl = FALSE,
+                  openMap=TRUE)
+}
+\arguments{
+  \item{SP}{object of \link[sp]{SpatialPointsDataFrame-class} with
+          associated coordinate reference systems and minimum three attributes: semi-major axis,  semi-minor axis, and orientation in degrees. }
+  \item{filename}{the name of the output htm or html file. If filename is not defined
+         the function will create filename same as the name of SP object with htm extension.}
+  \item{zcol}{variable column names, or column numbers after removing spatial coordinates 
+             from x@data: 1 refers to the first non-coordinate column. Attribute names or numbers of
+             columns contains semi-major axis,  semi-minor axis, and orientation in degrees respectively}
+  \item{add}{logical; if TRUE the result of the function will be a list stored as variable 
+             in the R. It is possible to combine more layers in the one plot, previously saved
+             output from plotGoogleMaps should be given in the previousMap attribute.}
+  \item{previousMap}{previously saved variable from plotGoogleMaps when attribute add is TRUE.
+                     It is solution for combining more than one layers in the one plot.}
+  \item{scale_e}{if is 10 then ellipses is drown 10:1}
+ \item{colPalette}{colours to be used to fill plotting symbols; numeric vector of same size
+                     like key.entries}
+  \item{strokeColor}{the color to draw the border of circle (the plotting symbols), NULL for no border}
+  \item{strokeOpacity}{the stroke opacity between 0.0 and 1.0}
+  \item{fillOpacity}{the fill opacity between 0.0 and 1.0}
+   \item{strokeWeight}{the stroke width in pixels}
+  \item{geodesic}{render each edge as a geodesic (a segment of a 'great circle')}
+  \item{clickable}{indicates whether this plotting symbol handles click events}
+  \item{zIndex}{the zIndex compared to other polygons}
+  \item{map.width}{the width of the map. Can be in percent or in pixels (px)}
+  \item{map.height}{the height of the map. Can be in percent or in pixels (px)}
+  \item{layerName}{the name of the layer. Layer name appears on the check box for
+                     switching layer of and on in output htm.}
+  \item{control.width}{the width of the part of htm for controlling layer  (legend, opacity,...)
+                           Can be in percent or in pixels (px).}
+  \item{control.height}{the height of the part of htm for controlling layer  (legend, opacity,...)
+                           Can be in percent or in pixels (px).}
+  \item{zoom}{the initial Map zoom level.Zoom levels between 0 (the lowest zoom level,
+             in which the entire world can be seen on one map)
+              to 19 (the highest zoom level, down to individual buildings) are 
+              possible within the normal maps view. Argument fitBounds should be FALSE.}
+  \item{fitBounds}{sets the maps to fit to the boundary box values of sp object}
+  \item{mapTypeId}{the initial Map mapTypeId. 
+'HYBRID' - map type displays a transparent layer of major streets on satellite images. 
+'ROADMAP' - map type displays a normal street map. 'SATELLITE' - map type displays satellite images. 
+'TERRAIN' - map type displays maps with physical features such as terrain and vegetation.}
+  \item{disableDoubleClickZoom}{enables or disables zoom and center on double click.}
+  \item{draggable}{if FALSE, prevents the map from being dragged}
+  \item{keyboardShortcuts}{if FALSE, prevents the map from being controlled by the keyboard.}
+  \item{mapTypeControlOptions}{the initial display options for the Map type control.
+                                'DEFAULT' - uses the default map type control. 'DROPDOWN_MENU' - 
+                                a dropdown menu for the screen realestate conscious. 
+                                'HORIZONTAL_BAR' - the standard horizontal radio buttons bar.}
+  \item{navigationControl}{enabled or disabled state of the navigation control}
+  \item{navigationControlOptions}{the initial display options for the navigation control. 
+                                  'ANDROID' -	the small zoom control similar to the one used by the native Maps application on Android.
+                                  'DEFAULT' -	the default navigation control. The control which DEFAULT maps to will vary according to map size and other factors. It may change in future versions of the API.
+                                   'SMALL' -	the small, zoom only control.
+                                 'ZOOM_PAN' -	the larger control, with the zoom slider and pan directional pad.}
+  \item{scaleControlOptions}{the initial display options for the scale control.}
+  \item{noClear}{if TRUE, do not clear the contents of the Map div.}
+  \item{scrollwheel}{if FALSE, disables scrollwheel zooming on the map.}
+  \item{streetViewControl}{the initial enabled or disabled state of the Street View pegman control}
+  \item{openMap}{if TRUE map is browesed by default browser}
+}
+\value{This function returns a list with HTML, JavaScript, Google Maps API key and
+       else what is necessary for the final web map. The second output is htm file ready to use stored in working direcoty.}
+\author{Milan Kilibarda \email{kili@grf.bg.ac.rs}}
+
+\seealso{
+\link{plotGoogleMaps},
+\link{segmentGoogleMaps},
+\link{bubbleGoogleMaps}
+}
+\examples{
+# Data preparation
+    ell<- data.frame(E=c(7456263,7456489,7456305),N=c(4954146,4952978,4952695),A=c( 2.96,4.55,7.10),B=c(2.35,2.11,2.29),teta=c(28.35242,41.04491,38.47216))
+    coordinates(ell) <- ~E+N
+    proj4string(ell) <- CRS("+proj=tmerc +lat_0=0 +lon_0=21 +k=0.9999 +x_0=7500000 +y_0=0 +ellps=bessel +towgs84=574.027,170.175,401.545,4.88786,-0.66524,-13.24673,0.99999311067 +units=m")
+    
+    m<-ellipseGoogleMaps(ell,filename="Ellipse.htm",mapTypeId='ROADMAP')
+# see results in your working directory
+}

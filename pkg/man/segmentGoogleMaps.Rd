@@ -14,7 +14,7 @@ segmentGoogleMaps(SP,
                   add = F, 
                   previousMap = NULL, 
                   colPalette = rainbow(ncol(SP@data[, zcol])),
-                   strokeColor = '#FFAA00', 
+                   strokeColor = '', 
                    strokeOpacity = 1, 
                    strokeWeight = 1, 
                    fillOpacity = 0.7, 
@@ -39,11 +39,20 @@ segmentGoogleMaps(SP,
                    noClear = FALSE, 
                    scrollwheel = TRUE,
                    streetViewControl = FALSE,
+                   legend=TRUE,
+                   control=TRUE,
+                   InfoWindowControl=list(map=map, event="click",position="event.latLng",
+                                disableAutoPan=FALSE, maxWidth=330,pixelOffset="null",
+                                zIndex="null") ,
+                   map="map",
+                   mapCanvas="map_canvas",
+                   css = "",
+                   api="https://maps.google.com/maps/api/js?sensor=false",
                    openMap=TRUE)}
 \arguments{\item{SP}{object of \link[sp]{SpatialPointsDataFrame-class} with
           associated coordinate reference systems}
   \item{filename}{the name of the output htm or html file. If filename is not defined
-         the function will create filename same as the name of SP object with htm extension.}
+         the function creates temporary file.}
   \item{zcol}{variable column names, or column numbers after removing spatial coordinates 
              from x@data: 1 refers to the first non-coordinate column}
   \item{max.radius}{value for largest circle (the plotting symbols) in metre}
@@ -99,6 +108,13 @@ segmentGoogleMaps(SP,
   \item{noClear}{if TRUE, do not clear the contents of the Map div.}
   \item{scrollwheel}{if FALSE, disables scrollwheel zooming on the map.}
   \item{streetViewControl}{the initial enabled or disabled state of the Street View pegman control}
+  \item{legend}{if FALSE, disables legend.}
+  \item{control}{if FALSE, disables control.}
+ \item{InfoWindowControl}{see \url{https://developers.google.com/maps/documentation/javascript/reference#InfoWindowOptions}}
+       \item{map}{name of map object in JavaScript}
+  \item{mapCanvas}{name of map DIV element}
+  \item{css}{CSS for mapCanvas and cBoxes}
+  \item{api}{see \url{https://developers.google.com/maps/documentation/javascript/tutorial}}
   \item{openMap}{if TRUE map is browesed by default browser}
 }
 \value{This function returns a list with HTML, JavaScript, Google Maps API key and
@@ -116,6 +132,5 @@ data(meuse)
 coordinates(meuse)<-~x+y
 proj4string(meuse) <- CRS('+init=epsg:28992')
 
-m<-segmentGoogleMaps(meuse,zcol=c('zinc','lead','copper'),filename='myMap.htm')
-# see results in your working directory
+m<-segmentGoogleMaps(meuse,zcol=c('zinc','lead','copper'))
 }

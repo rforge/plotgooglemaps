@@ -31,18 +31,17 @@ data(meuse)
 coordinates(meuse)<-~x+y
 proj4string(meuse) <- CRS('+init=epsg:28992')
 
-m<-plotGoogleMaps(meuse,zcol='zinc',filename='myMap_z1.htm')
-# see results in your working directory
+m<-plotGoogleMaps(meuse,zcol='zinc')
 
 # zinc labels
 ic=iconlabels(meuse$zinc, height=12)
-m<-plotGoogleMaps(meuse,zcol='zinc',filename='myMap_z2.htm', iconMarker=ic)
+m<-plotGoogleMaps(meuse,zcol='zinc', iconMarker=ic)
 
 # landuse labels and markers
 ic=iconlabels(meuse$landuse, height=12, colPalette=rainbow(15) )
-m<-plotGoogleMaps(meuse,zcol='landuse',colPalette=rainbow(15), filename='myMap_lu.htm', iconMarker=ic)
+m<-plotGoogleMaps(meuse,zcol='landuse',colPalette=rainbow(15), iconMarker=ic)
 
 ic=iconlabels(meuse$landuse, height=12, colPalette='#9ECAE1', icon=TRUE)
-m<-plotGoogleMaps(meuse,zcol='landuse',colPalette='#9ECAE1', filename='myMap_lu2.htm', iconMarker=ic)
+m<-plotGoogleMaps(meuse,zcol='landuse',colPalette='#9ECAE1', iconMarker=ic)
 
 }

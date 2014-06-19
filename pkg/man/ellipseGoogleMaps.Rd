@@ -1,6 +1,6 @@
 \name{ellipseGoogleMaps}
 \alias{ellipseGoogleMaps}
-\title{Create a ellipses plot from spatial points data frame on Google Maps, 
+\title{Create plot of ellipses from spatial points data frame on Google Maps, 
        by using three attributes: semi-major axis,  semi-minor axis, and orientation in degrees.}
 \description{Plot htm output with Google Maps API in form of ellipses plot of spatial
              data. Ready to use as local htm file or into your own website.}
@@ -19,11 +19,11 @@ ellipseGoogleMaps(SP,
                   geodesic = TRUE, 
                   clickable = TRUE,  
                   zIndex = 'null', 
-                               map.width="100\%",
-                               map.height="100\%",
-                               layerName="",
-                              control.width="100\%",
-                              control.height="100\%",
+                  map.width="100\%",
+                  map.height="100\%",
+                  layerName="",
+                  control.width="100\%",
+                  control.height="100\%",
                   zoom = 15, 
                   fitBounds = TRUE, 
                   mapTypeId = 'HYBRID', 
@@ -37,13 +37,19 @@ ellipseGoogleMaps(SP,
                   noClear = FALSE, 
                   scrollwheel = TRUE, 
                   streetViewControl = FALSE,
+                  legend=TRUE,
+                  control=TRUE,
+                  InfoWindowControl=list(map="map", event="click",position="event.latLng",
+                                                   disableAutoPan=FALSE, maxWidth=330,pixelOffset="null",
+                                                   zIndex="null") ,
+                  api="https://maps.google.com/maps/api/js?sensor=false",
                   openMap=TRUE)
 }
 \arguments{
   \item{SP}{object of \link[sp]{SpatialPointsDataFrame-class} with
           associated coordinate reference systems and minimum three attributes: semi-major axis,  semi-minor axis, and orientation in degrees. }
   \item{filename}{the name of the output htm or html file. If filename is not defined
-         the function will create filename same as the name of SP object with htm extension.}
+         the function creates temporary file.}
   \item{zcol}{variable column names, or column numbers after removing spatial coordinates 
              from x@data: 1 refers to the first non-coordinate column. Attribute names or numbers of
              columns contains semi-major axis,  semi-minor axis, and orientation in degrees respectively}
@@ -96,6 +102,10 @@ ellipseGoogleMaps(SP,
   \item{noClear}{if TRUE, do not clear the contents of the Map div.}
   \item{scrollwheel}{if FALSE, disables scrollwheel zooming on the map.}
   \item{streetViewControl}{the initial enabled or disabled state of the Street View pegman control}
+    \item{legend}{if FALSE, disables legend.}
+  \item{control}{if FALSE, disables control.}
+  \item{InfoWindowControl}{see \url{https://developers.google.com/maps/documentation/javascript/reference#InfoWindowOptions}}
+  \item{api}{see \url{https://developers.google.com/maps/documentation/javascript/tutorial}}
   \item{openMap}{if TRUE map is browesed by default browser}
 }
 \value{This function returns a list with HTML, JavaScript, Google Maps API key and
@@ -109,10 +119,13 @@ ellipseGoogleMaps(SP,
 }
 \examples{
 # Data preparation
-    ell<- data.frame(E=c(7456263,7456489,7456305),N=c(4954146,4952978,4952695),A=c( 2.96,4.55,7.10),B=c(2.35,2.11,2.29),teta=c(28.35242,41.04491,38.47216))
+    ell<- data.frame(E=c(7456263,7456489,7456305),
+    N=c(4954146,4952978,4952695),A=c( 2.96,4.55,7.10),
+    B=c(2.35,2.11,2.29),teta=c(28.35242,41.04491,38.47216))
+    
     coordinates(ell) <- ~E+N
     proj4string(ell) <- CRS("+proj=tmerc +lat_0=0 +lon_0=21 +k=0.9999 +x_0=7500000 +y_0=0 +ellps=bessel +towgs84=574.027,170.175,401.545,4.88786,-0.66524,-13.24673,0.99999311067 +units=m")
     
-    m<-ellipseGoogleMaps(ell,filename="Ellipse.htm",mapTypeId='ROADMAP')
-# see results in your working directory
+    m<-ellipseGoogleMaps(ell,mapTypeId='ROADMAP')
+
 }

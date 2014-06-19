@@ -1,20 +1,16 @@
-\name{plotGoogleMaps}
-\alias{plotGoogleMaps}
-\title{Create a plot of spatial data on Google Maps}
-\description{Plot htm output with Google Maps API and a plot of spatial
-             data as a combination of users' data and Google Maps layers. Ready to use as local htm file or into your own website.}
+\name{mcGoogleMaps}
+\alias{mcGoogleMaps}
+\title{Create a plot of spatial data on Google Maps, creates and manages per-zoom-level clusters for large amounts of markers}
+\description{Plot htm output with Google Maps API and a plot of spatial points
+             data as a combination of users' data and Google Maps layers. Ready to use as local htm file or into your own website. This function uses MarkerClusterer for Google Maps v3 - library creates and manages per-zoom-level clusters for large amounts of markers.}
 \usage{
-plotGoogleMaps(SP, 
+mcGoogleMaps(SP, 
               filename = '',
               zcol = 1,
               at=NULL,
               add = FALSE, 
               previousMap = NULL,
               colPalette = NULL,
-              strokeColor = "",
-              strokeOpacity = 1,
-              fillOpacity=0.7,
-              strokeWeight = 1,
               geodesic = TRUE, 
               clickable = TRUE,
               draggableMarker = FALSE,
@@ -49,6 +45,7 @@ plotGoogleMaps(SP,
               mapCanvas="map_canvas",
               css = "",                                     
               api="https://maps.google.com/maps/api/js?sensor=false",
+              apiMarkerClusterer="http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js",
               openMap=TRUE) }
 \arguments{
   \item{SP}{object of \link[sp]{Spatial-class} with
@@ -64,10 +61,6 @@ plotGoogleMaps(SP,
   \item{previousMap}{previously saved variable from plotGoogleMaps or bubbleGoogleMaps when attribute add is TRUE.
                      It is solution for combining more than one layers in the one plot.}
   \item{colPalette}{colours to be used to fill polygon or colour for the line}
-  \item{strokeColor}{the color to draw the borders of polygon, NULL for no border}
-  \item{strokeOpacity}{the stroke opacity between 0.0 and 1.0 for the polygon or line}
-  \item{fillOpacity}{the fill opacity (polygons) between 0.0 and 1.0}
-  \item{strokeWeight}{the stroke width in pixels for polygon border or line}
   \item{geodesic}{render each edge as a geodesic (a segment of a 'great circle')}
   \item{clickable}{indicates whether this marker (point), polygon or line handles click events}
   \item{draggableMarker}{if TRUE, the marker can be dragged}
@@ -101,7 +94,7 @@ plotGoogleMaps(SP,
                                 'HORIZONTAL_BAR' - the standard horizontal radio buttons bar.}
   \item{navigationControl}{enabled or disabled state of the navigation control}
   \item{navigationControlOptions}{the initial display options for the navigation control. 
-                                  'ANDROID' -	the small zoom control similar to the one used by the native Maps application on Android.
+                                  'ANDROID' -  the small zoom control similar to the one used by the native Maps application on Android.
                                   'DEFAULT' -	the default navigation control. The control which DEFAULT maps to will vary according to map size and other factors. It may change in future versions of the API.
                                    'SMALL' -	the small, zoom only control.
                                  'ZOOM_PAN' -	the larger control, with the zoom slider and pan directional pad.}
@@ -116,12 +109,14 @@ plotGoogleMaps(SP,
   \item{mapCanvas}{name of map DIV element}
   \item{css}{CSS for mapCanvas and cBoxes}
   \item{api}{see \url{https://developers.google.com/maps/documentation/javascript/tutorial}}
+  \item{apiMarkerClusterer}{see \url{http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/docs/reference.html}}
   \item{openMap}{if TRUE map is browesed by default browser}
 }
 \value{This function returns a list with HTML, JavaScript, Google Maps API key and
        else what is necessary for the final web map. The second output is html file ready to use.}
 \author{Milan Kilibarda <kili@grf.bg.ac.rs>}
 \seealso{
+\link{plotGoogleMaps},
 \link{bubbleGoogleMaps},
 \link{ellipseGoogleMaps},
 \link{segmentGoogleMaps}
@@ -130,22 +125,9 @@ plotGoogleMaps(SP,
 # Data preparation
 # Point data
 data(meuse)
-require(maptools)
 coordinates(meuse)<-~x+y
 proj4string(meuse) <- CRS('+init=epsg:28992')
-# Line data
-data(meuse.grid)
-coordinates(meuse.grid)<-c('x','y')
-meuse.grid<-as(meuse.grid,'SpatialPixelsDataFrame')
-im<-as.image.SpatialGridDataFrame(meuse.grid['dist'])
-cl<-ContourLines2SLDF(contourLines(im))
-proj4string(cl) <- CRS('+init=epsg:28992')
 
-# Create web map of Point data
-m<-plotGoogleMaps(meuse) 
+m<-mcGoogleMaps(meuse, zcol='zinc') 
 
-# Combine point and line data
-mapMeusePoints<- plotGoogleMaps(meuse,add=TRUE,mapTypeId='TERRAIN')
-mapMeuseCl<- plotGoogleMaps(cl,previousMap=mapMeusePoints,filename='myMap2.htm')
-# see results in your working directory
 }

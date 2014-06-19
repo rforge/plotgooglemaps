@@ -3,13 +3,14 @@ function (attribute,
                         colPalette=rainbow(length(attribute)),
                         border=NA,
                         legendName="Legend",
-                        bgc='white') {
+                        bgc='white',
+                        temp=FALSE) {
 
 
-png(filename=paste(legendName,'.png',sep=""), width=300,
-       height=300,units = "px", bg="white")
+png(filename =ifelse(temp,paste(tempdir(),'/',legendName,'.png',sep=""),paste(legendName,'.png',sep="") ), width=220,
+       height=220,units = "px",pointsize = 10, bg="white")
        
- par(mar=c(2.1,5.1,2.1,5.1), bg=bgc)
+ par(mar=c(2.1,3.1,2.1,3.1), bg=bgc)
 
 
 	niv  <- attribute

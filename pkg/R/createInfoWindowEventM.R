@@ -19,14 +19,16 @@ function(Marker,
            if (is.numeric(position)) {
           pixelOffset=paste('new google.maps.Size',pixelOffset[1],',',pixelOffset[1],')')
           }
-x=paste( ' var infowindow = new google.maps.InfoWindow({ content: "" }); \n google.maps.event.addListener(',Marker,
-',"',event,'",function(event){ \n infowindow.content="',
-content,'"; \n  infowindow.position =',position,
-'; \n infowindow.disableAutoPan=', disableAutoPan,
-'; \n infowindow.maxWidth=',maxWidth,
-';\n infowindow.pixelOffset=',
-pixelOffset,';\n infowindow.zIndex='
-,zIndex,'; infowindow.open(',map,',' ,Marker,')}); ',sep="")
+x=paste( ' var infowindow = new google.maps.InfoWindow({ content: "",
+                                                        position:',position,
+                                                       ', disableAutoPan:', disableAutoPan,
+                                                        ', maxWidth :',maxWidth,
+                                                        ', pixelOffset :',pixelOffset,
+                                                        '  }); ',
+         '\n google.maps.event.addListener(',Marker,
+',"',event,'",function(event){ \n infowindow.content="',content,'" ; 
+infowindow.position=',position ,';
+infowindow.open(',map,',' ,Marker,')}); ',sep="")
 
 return(x)
 

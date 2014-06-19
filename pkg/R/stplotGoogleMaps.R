@@ -155,7 +155,7 @@ ifr=sapply(1:length(filename), function(i){
 })
 
 ifr=paste(ifr,collapse="")
-ifr=paste('<html> <head>  </head> <body>',ifr,' </body>  </html>',sep="",collapse=" ")
+ifr=paste(' <html> <head>  </head> <body>',ifr,' </body>  </html>',sep="",collapse=" ")
 
 setwd(wd)
 write(ifr, stfilename)

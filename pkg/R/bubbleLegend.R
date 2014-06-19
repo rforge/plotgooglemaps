@@ -5,18 +5,22 @@ function (shape="t",
                         legendName="Legend",
                         bgc='white',
                         scale.level=1,
-                        strokeColor="#FFAA00") {
+                        strokeColor="#FFAA00",
+                        temp=FALSE) {
 
 if(strokeColor==""){strokeColor='black'}
-png(filename =paste(legendName,'.png',sep=""), width=nlevels(factor(attribute))*50,
-       height=nlevels(factor(attribute))*50,units = "px", bg="white")
-par(mai=c(0,0,0,0),bg=bgc)
-plot(0,xlab="",ylab="",type="n", axes=F,xlim=c(0,3*nlevels(factor(attribute))),
+
+png(filename =ifelse(temp,paste(tempdir(),'/',legendName,'.png',sep=""),paste(legendName,'.png',sep="") ), width=150,
+       height=nlevels(factor(attribute))*40,units = "px", bg="white", pointsize = 10)
+# 
+par(mar=c(0,0,0,0),bg=bgc)
+plot(0,xlab="",ylab="",type="n", axes=F,asp=1, xlim=c(0,15),
                                        ylim=c(0,3*nlevels(factor(attribute)) ))
 
 pal<-colorRampPalette(c( "green", "orange","brown"), space = "Lab")
 
-		niv  <- levels(factor(attribute))
+niv  <- levels(factor(attribute))
+
 	if(is.null(colPalette)){
 	  cols<-pal(length(niv))
     }else{cols <-colPalette}
@@ -33,7 +37,7 @@ pal<-colorRampPalette(c( "green", "orange","brown"), space = "Lab")
 		            y,
 			          col=cols[k],
                 border=strokeColor)
-                text(6,i*3-1.5,niv[k],cex=1)
+                text(10,i*3-1.5,niv[k],cex=1)
                 k=k+1}
                 graph1 <- dev.cur()
                 dev.off(graph1)
@@ -46,7 +50,7 @@ pal<-colorRampPalette(c( "green", "orange","brown"), space = "Lab")
 		            y,
 			          col=cols[k],
                 border=strokeColor)
-                text(6,i*3-1.5,niv[k],cex=1)
+                text(10,i*3-1.5,niv[k],cex=1)
                 k=k+1}
                 graph1 <- dev.cur()
                 dev.off(graph1)
@@ -58,7 +62,7 @@ pal<-colorRampPalette(c( "green", "orange","brown"), space = "Lab")
 		            y,
 			          col=cols[k],
                 border=strokeColor)
-                text(6,i*3-1.5,niv[k],cex=1)
+                text(10,i*3-1.5,niv[k],cex=1)
                 k=k+1}
                 graph1 <- dev.cur()
                 dev.off(graph1)

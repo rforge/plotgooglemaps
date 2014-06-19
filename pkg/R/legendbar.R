@@ -3,7 +3,8 @@ legendbar <- function(attribute,
                       legendName="Legend",
                       bgc='white',
                       nticks=11, 
-                      title='') {
+                      title='',
+                      temp=FALSE) {
  
   pal<-colorRampPalette(c( "green", "orange","brown"), space = "Lab")
   if(is.null(colPalette) ){
@@ -66,8 +67,8 @@ if(is.numeric(attribute)){
   
   if(length(lut)>25){h=length(lut)*15}else{h=360}
   
-  png(filename =paste(legendName,'.png',sep=""), height=h, width=216,units = "px", bg="white")
-  par(mar=c(0,1,1,10),bg=bgc)
+  png(filename =ifelse(temp,paste(tempdir(),'/',legendName,'.png',sep=""),paste(legendName,'.png',sep="") ), height=h, width=108,pointsize = 8, units = "px", bg="white")
+  par(mar=c(0,1,1,4),bg=bgc)
   #dev.new(width=1.75, height=5)
   plot( c(0,1), c(min,max), type='n', bty='n', xaxt='n', xlab='', yaxt='n', ylab='', main=title)
   axis(4,ticks.at, labels=ticks,las=1, lwd = 0, lwd.ticks =1) # , las=1

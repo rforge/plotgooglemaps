@@ -13,25 +13,31 @@ function(SP,
                             geodesic=TRUE,
                             clickable=TRUE,
                             zIndex="null",
-                               map.width="100%",
-                               map.height="100%",
-                               layerName="",
-                               control.width="100%",
-                               control.height="100%",
-                               zoom=15,
-                               fitBounds=TRUE,
-                               mapTypeId = "HYBRID",
-                               disableDoubleClickZoom =FALSE,
-                               draggable= TRUE ,
-                               keyboardShortcuts=TRUE,
-                               mapTypeControlOptions='DEFAULT',
-                               navigationControl=TRUE,
-                               navigationControlOptions='DEFAULT',
-                               scaleControlOptions= 'STANDARD',
-                               noClear=FALSE,
-                               scrollwheel =TRUE     ,
-                               streetViewControl= FALSE,
-                              openMap=TRUE){
+                            map.width="100%",
+                            map.height="100%",
+                            layerName="",
+                            control.width="100%",
+                            control.height="100%",
+                            zoom=15,
+                            fitBounds=TRUE,
+                            mapTypeId = "HYBRID",
+                            disableDoubleClickZoom =FALSE,
+                            draggable= TRUE ,
+                            keyboardShortcuts=TRUE,
+                            mapTypeControlOptions='DEFAULT',
+                            navigationControl=TRUE,
+                            navigationControlOptions='DEFAULT',
+                            scaleControlOptions= 'STANDARD',
+                            noClear=FALSE,
+                            scrollwheel =TRUE     ,
+                            streetViewControl= FALSE,
+                            legend=TRUE,
+                            control=TRUE,
+                            InfoWindowControl=list(map="map", event="click",position="event.latLng",
+                                disableAutoPan=FALSE, maxWidth=330,pixelOffset="null",
+                                zIndex="null") ,
+                            api="https://maps.google.com/maps/api/js?sensor=false",
+                            openMap=TRUE){
  
 
     
@@ -40,7 +46,7 @@ function(SP,
  ###############################################################################
 nameOfSP<-sapply(as.list(substitute({SP})[-1]), deparse)
 nameOfSP<-gsub("\\s","", nameOfSP)
-nameOfSP<-gsub('[!,",#,$,%,&,(,),*,+,-,.,/,:,;,<,=,>,?,@,^,`,|,~]', "x", nameOfSP)
+nameOfSP<-gsub('[!,",#,$,%,&,(,),*,+,-,_,.,/,:,;,<,=,>,?,@,^,`,|,~]', "x", nameOfSP)
 nameOfSP<-gsub('[[]', "X", nameOfSP)
 nameOfSP<-gsub('[]]', "X", nameOfSP)
 
@@ -59,9 +65,12 @@ Centar=c(mean(SP.ll@bbox[1,]),mean(SP.ll@bbox[2,]))
 sw<-c(SP.ll@bbox[2,1],SP.ll@bbox[1,1])
 ne<-c(SP.ll@bbox[2,2],SP.ll@bbox[1,2])
 attribute=SP@data[,zcol[1]]
-
+temporary = FALSE
 if(filename==""){
-filename <- paste(nameOfSP,'.htm',sep="")}
+  filename <- tempfile("map", fileext = c(".html"))
+  temporary = TRUE
+}
+randNum = sample(1:10000, 1)
 
 if(layerName==""){
 layerName=nameOfSP}
@@ -179,7 +188,7 @@ starthtm<-paste(starthtm, fjs)
 
 
 
-                  polyName<-paste('poly',nameOfSP,sep="")
+                  polyName<-paste('poly',nameOfSP,randNum, sep="")
                   boxname<-paste(nameOfSP,'box',sep="")
                   textname<- paste(nameOfSP,'text',sep="")
                   divLegendImage<-tempfile("Legend")  
@@ -209,7 +218,7 @@ starthtm<-paste(starthtm, fjs)
                   cxx<-PolyCol(attribute,colPalette)
                    xx<-cxx$cols
                   
- pp<-legendbar(cxx$brks,colPalette=cxx$col.uniq,legendName=divLegendImage)
+#  pp<-legendbar(cxx$brks,colPalette=cxx$col.uniq,legendName=divLegendImage)
 
  var1<- paste( lapply(as.list(1:length(SP.ll@polygons)), function(i) paste(var1,createPolygon(SP.ll@polygons[[i]],
                                                                                               fillColor=xx[i],
@@ -234,8 +243,18 @@ starthtm<-paste(starthtm, fjs)
                   
                   infW<-""
  
- infW<- paste ( lapply(as.list(1:length(SP.ll@polygons)), function(i) paste(infW,createInfoWindowEvent(Line_or_Polygon=
-   paste(polyName,'[',i-1,'] ',sep=""),content=att[i]),' \n')  )  ,collapse='\n' )                  
+infW<- paste ( lapply(as.list(1:length(SP.ll@polygons)), function(i) 
+  paste(infW,createInfoWindowEvent(Line_or_Polygon=
+                                     paste(polyName,'[',i-1,'] ',sep=""),
+                                   content=att[i],
+                                   map=InfoWindowControl$map,
+                                   event=InfoWindowControl$event,
+                                   position= InfoWindowControl$position,
+                                   disableAutoPan = InfoWindowControl$disableAutoPan,
+                                   maxWidth=InfoWindowControl$maxWidth,
+                                   pixelOffset=InfoWindowControl$pixelOffset,
+                                   zIndex=InfoWindowControl$zIndex)
+        ,' \n')  )  ,collapse='\n' )                
  
                   
 #                   for(i in 1:length(SP.ll@polygons)){
@@ -252,29 +271,33 @@ starthtm<-paste(starthtm, fjs)
                            \n <div id="cBoxes"> \n')
                   } else { endhtm<- previousMap$endhtm }
                   
- endhtm<- paste(endhtm,'<table border="0"> \n <tr> \n  <td> 
+if(control){
+  endhtm<- paste(endhtm,'<table border="0"> \n <tr> \n  <td> 
                                  <input type="checkbox" id="',boxname,'" 
-                                 onClick=\'boxclick(this,',polyName,',"',boxname,
-                '");\' /> <b> ', layerName,'<b> </td> </tr> \n',sep="")
- 
- endhtm<- paste(endhtm,' \n <tr> <td> \n <input type="text" id="',
-                textname,'" value="50" onChange=\'setOpac(',
-                polyName,',"',textname,'")\' size=3 /> 
-                                 Opacity (0-100 %) </td> </tr> \n',sep="")
-
- endhtm<- paste(endhtm,' \n <tr>  <td> \n <input type="text" 
-                                 id="',textnameW,'" value="1" onChange=\'
-                                 setLineWeight(',polyName,',"',textnameW,'")\' 
-                                 size=3 /> Line weight (pixels) </td> </tr> \n ',sep="")
-
- endhtm<- paste(endhtm,' \n <tr>  <td> <input type="checkbox"  checked="checked" id="'
-                ,legendboxname,'" onClick=\'legendDisplay(this,"',
-                divLegendImage,'");\' /> LEGEND </td> </tr>  <tr> <td>',
-                attributeName,'</td> </tr>
-                                    <tr> <td> <div style="display:block;" id="',
-                                   divLegendImage,'"> <img src="',divLegendImage,
-                '.png" alt="Legend" height="70%"> </div>
-                           </td> </tr> \n </table> \n  <hr> \n',sep="")
+                 onClick=\'boxclick(this,',polyName,',"',boxname,
+                 '");\' /> <b> ', layerName,'<b> </td> </tr> \n',sep="")
+  endhtm<- paste(endhtm,' \n <tr> <td> \n <input type="text" id="',
+                 textname,'" value="50" onChange=\'setOpac(',
+                 polyName,',"',textname,'")\' size=3 /> 
+                 Opacity (0-100 %) </td> </tr> \n',sep="")
+  endhtm<- paste(endhtm,' \n <tr>  <td> \n <input type="text" 
+                 id="',textnameW,'" value="1" onChange=\'
+                 setLineWeight(',polyName,',"',textnameW,'")\' 
+                 size=3 /> Line weight (pixels) </td> </tr> \n ',sep="")
+}
+if(legend){
+  
+  pp <-legendbar(cxx$brks,colPalette=cxx$col.uniq,legendName=divLegendImage, temp=temporary)  
+  
+  endhtm<- paste(endhtm,' \n <tr>  <td> <input type="checkbox"  checked="checked" id="'
+                 ,legendboxname,'" onClick=\'legendDisplay(this,"',
+                 divLegendImage,'");\' /> LEGEND </td> </tr>  <tr> <td>',
+                 attributeName,'</td> </tr>
+                 <tr> <td> <div style="display:block;" id="',
+                 divLegendImage,'"> <img src="',divLegendImage,
+                 '.png" alt="Legend" height="70%"> </div>
+                 </td> </tr> \n </table> \n  <hr> \n',sep="") 
+}else{ endhtm<- paste(endhtm, '</tr> \n </table> \n <hr>  \n') }
 
  if (add==F){functions<- paste(functions," google.maps.event.addListener(map, 'rightclick', function(event) {
     var lat = event.latLng.lat();

@@ -1,6 +1,6 @@
 Package: plotGoogleMaps
 Type: Package
-Title: Plot spatial ot spatio-temporal data over Google Maps
+Title: Plot spatial or spatio-temporal data over Google Maps
 Version: 2.1
 Date: 2012-04-02
 Author: Milan Kilibarda

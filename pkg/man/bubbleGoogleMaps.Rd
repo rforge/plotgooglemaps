@@ -40,8 +40,9 @@
                         streetViewControl = FALSE,
                         legend=TRUE,
                         control=TRUE,
-                        InfoWindowControl=list(map=map, event="click",position="event.latLng",
-                                                   disableAutoPan=FALSE, maxWidth=330,pixelOffset="null",
+                        InfoWindowControl=list(map=map, event="click",
+                        position="event.latLng",disableAutoPan=FALSE, 
+                        maxWidth=330,pixelOffset="null",
                                                    zIndex="null") ,
                         map="map",
                         mapCanvas="map_canvas",
@@ -136,6 +137,7 @@ proj4string(meuse) <- CRS('+init=epsg:28992')
 
 m<-bubbleGoogleMaps(meuse,zcol='zinc')
 
-m<-bubbleGoogleMaps(meuse,zcol='cadmium',layerName='Bubble plot - meuse',colPalette=terrain.colors(5),strokeColor='')
+m<-bubbleGoogleMaps(meuse,zcol='cadmium',layerName='Bubble plot - meuse',
+                    colPalette=terrain.colors(5),strokeColor='')
 
 }

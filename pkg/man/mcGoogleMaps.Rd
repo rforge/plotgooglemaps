@@ -39,13 +39,16 @@ mcGoogleMaps(SP,
               legend=TRUE,
               control=TRUE,
               InfoWindowControl=list(map=map, event="click",position="event.latLng",
-                                                   disableAutoPan=FALSE, maxWidth=330,pixelOffset="null",
+                                                   disableAutoPan=FALSE, maxWidth=330,
+                                                   pixelOffset="null",
                                                    zIndex="null") ,
               map="map",
               mapCanvas="map_canvas",
               css = "",                                     
               api="https://maps.google.com/maps/api/js?sensor=false",
-              apiMarkerClusterer="http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js",
+              apiMarkerClusterer=paste('"http://google-maps-utility-library-v3.',
+                                    'googlecode.com/svn/trunk/',
+                                    'markerclusterer/src/markerclusterer.js"',sep=""),
               openMap=TRUE) }
 \arguments{
   \item{SP}{object of \link[sp]{Spatial-class} with

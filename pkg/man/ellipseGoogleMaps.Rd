@@ -40,8 +40,8 @@ ellipseGoogleMaps(SP,
                   legend=TRUE,
                   control=TRUE,
                   InfoWindowControl=list(map="map", event="click",position="event.latLng",
-                                                   disableAutoPan=FALSE, maxWidth=330,pixelOffset="null",
-                                                   zIndex="null") ,
+                                                   disableAutoPan=FALSE, maxWidth=330,
+                                                   pixelOffset="null",zIndex="null") ,
                   api="https://maps.google.com/maps/api/js?sensor=false",
                   openMap=TRUE)
 }
@@ -124,7 +124,10 @@ ellipseGoogleMaps(SP,
     B=c(2.35,2.11,2.29),teta=c(28.35242,41.04491,38.47216))
     
     coordinates(ell) <- ~E+N
-    proj4string(ell) <- CRS("+proj=tmerc +lat_0=0 +lon_0=21 +k=0.9999 +x_0=7500000 +y_0=0 +ellps=bessel +towgs84=574.027,170.175,401.545,4.88786,-0.66524,-13.24673,0.99999311067 +units=m")
+    proj4string(ell) <- CRS("+proj=tmerc +lat_0=0 +lon_0=21 +k=0.9999 
+        +x_0=7500000 +y_0=0 +ellps=bessel 
+        +towgs84=574.027,170.175,401.545,4.88786,-0.66524,-13.24673,0.99999311067 
+        +units=m")
     
     m<-ellipseGoogleMaps(ell,mapTypeId='ROADMAP')
 

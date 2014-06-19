@@ -15,7 +15,8 @@ stplotGoogleMaps(SPT,
                            do.bubble=FALSE,
                            at=NULL,
                            bubble= list(max.radius=10000,
-                                        key.entries = if(do.bubble){quantile(SPT@data[,zcol],(1:5)/5, 
+                                        key.entries = if(do.bubble)
+                                        {quantile(SPT@data[,zcol],(1:5)/5, 
                                         na.rm=T)}else{0},
                                          do.sqrt = TRUE),
                            iconMarker="",
@@ -59,9 +60,10 @@ stplotGoogleMaps(SPT,
 # plot STDIF
 # stplotGoogleMaps(HRtemp08_jan,zcol='TEMP', mapTypeId='ROADMAP',w='49\%',h='49\%')
 # plot STDIF bubble 
-# stplotGoogleMaps(HRtemp08_jan,zcol='TEMP',stfilename='HR_temp.html', mapTypeId='ROADMAP',w='49\%',h='49\%',  strokeOpacity = 0,
-#                  do.bubble=T, bubble= list(max.radius=15000,
-#                key.entries =quantile(HRtemp08_jan@data[,'TEMP'],(1:5)/5, na.rm=T),
+# stplotGoogleMaps(HRtemp08_jan,zcol='TEMP',stfilename='HR_temp.html', 
+#            mapTypeId='ROADMAP',w='49\%',h='49\%',  strokeOpacity = 0,
+#           do.bubble=T, bubble= list(max.radius=15000,
+#           key.entries =quantile(HRtemp08_jan@data[,'TEMP'],(1:5)/5, na.rm=T),
 #                  do.sqrt = F) )
 #
 ############################################################################
@@ -78,9 +80,11 @@ stplotGoogleMaps(SPT,
 #Produc.st = STFDF(states[-8], time, Produc[order(Produc[2], Produc[1]),])
 #Produc.st@sp@proj4string=CRS('+proj=longlat +datum=WGS84')
 #library(RColorBrewer)
-#ee= stplotGoogleMaps(Produc.st,zcol='unemp',stfilename='USA.htm',colPalette=brewer.pal(9, "YlOrRd"), mapTypeId='ROADMAP',
+#ee= stplotGoogleMaps(Produc.st,zcol='unemp',stfilename='USA.htm',
+#   colPalette=brewer.pal(9, "YlOrRd"), mapTypeId='ROADMAP',
 #w='49\%',h='49\%', fillOpacity=0.85)
 ## without control
-# ee= stplotGoogleMaps(Produc.st,zcol='unemp',stfilename='USA2.htm',colPalette=brewer.pal(9, "YlOrRd"), 
-#mapTypeId='ROADMAP',w='33\%',h='25\%', fillOpacity=0.85, control.width=0)                
+# ee= stplotGoogleMaps(Produc.st,zcol='unemp',
+#   stfilename='USA2.htm',colPalette=brewer.pal(9, "YlOrRd"), 
+# mapTypeId='ROADMAP',w='33\%',h='25\%', fillOpacity=0.85, control.width=0)                
 }

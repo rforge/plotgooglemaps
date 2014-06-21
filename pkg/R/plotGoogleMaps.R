@@ -66,16 +66,19 @@ if(filename==""){
   temporary = TRUE
 }
 
-if (!(class(SP)[1]=="SpatialPixelsDataFrame" || class(SP)[1]=="SpatialGridDataFrame" || class(SP)[1]=="RasterLayer") ){
-  
-   SP.ll <- spTransform(SP, CRS("+proj=longlat +datum=WGS84"))
-  
-} else if(class(SP)[1]!="RasterLayer"){
-  SP <- raster(SP, layer=zcol)
 
+if(class(SP)[1]=="RasterLayer"){
   SP<- projectRaster( SP , crs=CRS("+proj=longlat +datum=WGS84"))
   SP <- as(SP , 'SpatialGridDataFrame')
   SP.ll <- SP
+}
+if ((class(SP)[1]=="SpatialPixelsDataFrame" || class(SP)[1]=="SpatialGridDataFrame" ) ){
+  r <- raster(SP)
+  SP<- projectRaster( r , crs=CRS("+proj=longlat +datum=WGS84"))
+  SP <- as(SP , 'SpatialGridDataFrame')
+  SP.ll <- SP
+} else{
+  SP.ll <- spTransform(SP, CRS("+proj=longlat +datum=WGS84"))
 }
 
 disableDefaultUI=FALSE

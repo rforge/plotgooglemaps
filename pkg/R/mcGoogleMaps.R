@@ -40,9 +40,7 @@ mcGoogleMaps <-
            mapCanvas="map_canvas",
            css = "",
            api="https://maps.google.com/maps/api/js?sensor=false",
-           apiMarkerClusterer=paste('"http://google-maps-utility-library-v3.',
-                                    'googlecode.com/svn/trunk/',
-                                    'markerclusterer/src/markerclusterer.js"',sep=""),
+           apiMarkerClusterer='http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js',
            openMap= TRUE
   ){
   

@@ -73,7 +73,7 @@ if(class(SP)[1]=="RasterLayer"){
   SP.ll <- SP
 }
 if ((class(SP)[1]=="SpatialPixelsDataFrame" || class(SP)[1]=="SpatialGridDataFrame" ) ){
-  r <- raster(SP)
+  r <- raster(SP, layer=zcol)
   SP<- projectRaster( r , crs=CRS("+proj=longlat +datum=WGS84"))
   SP <- as(SP , 'SpatialGridDataFrame')
   SP.ll <- SP

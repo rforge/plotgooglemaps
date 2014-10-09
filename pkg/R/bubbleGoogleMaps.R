@@ -52,7 +52,7 @@ function(SP,
 
 disableDefaultUI=FALSE
 
-
+if(min(key.entries) <0 ) { key.entries <- sort(c(key.entries, 0))}
 
 	obj = as(SP, "SpatialPointsDataFrame")
 	data = obj@data
@@ -66,25 +66,50 @@ kkk=c(min(z),key.entries)
 
 kkk=sapply(2:length(kkk), function(i) mean( c(kkk[i],kkk[i-1]) ) )
     
-    	ke<-abs(kkk) + mean(abs(kkk))    # no zeros as max for radius vecor
-    	# creating a vector for subgroups
-    	if(do.sqrt){
-    	scale.level<- sqrt(ke/(max(ke)) ) }else{scale.level<-ke/(max(ke))}
-	radius.level<-max.radius*scale.level
-	 # list of radiuses for createSphereCircle
-	 breakss<-factor(c(min(z),key.entries))
-   break_unique<-as.numeric(levels(breakss))
-   break_unique[length(break_unique)]<-max(z)
-   
-  if(length(unique(z))==length(key.entries)){ zz=factor(z,labels=radius.level)
-                                              radius.vector<-floor(as.numeric(as.vector(zz))) 
-                                            }else{ 
-                                                  zz=factor(cut(z,break_unique,include.lowest=TRUE ),labels=radius.level)
-	radius.vector<-floor(as.numeric(as.vector((zz))))
-                                                  }
+ke<-abs(kkk) + mean(abs(kkk))    # no zeros as max for radius vecor
+# creating a vector for subgroups
+if(do.sqrt){scale.level<- sqrt(ke/(max(ke)) ) }else{scale.level<-ke/(max(ke))}
+radius.level<-max.radius*scale.level
+
+# new
+if (key.entries[1] > min(z) ) {
+  breakss <- factor(  c(min(z), key.entries) )
+} else {
+  breakss <- factor(  c(key.entries) )
+}
+
+break_unique <- as.numeric(levels(breakss))
+
+# new
+if (break_unique[length(break_unique)] < max(z) ) {
+  break_unique[length(break_unique)] <- max(z)
+}
+
+#setting of auxiliary variable				
+breaks_used=1:(length(break_unique))
+
+if (length(unique(z)) == length(key.entries)) {
+  zz = factor(z, labels = radius.level)
+  radius.vector <- floor(as.numeric(as.vector(zz)))
+}  else {
+  break_unique2=break_unique
+  break_unique2[length(break_unique2)] <- max(z)+1
+  #now find out which categories are used ...
+  #findInterval(z, break_unique2)
+  #data.frame(z, int=findInterval(z, break_unique2), classes=t(break_unique2))
+  breaks_used=sort(unique(findInterval(z, break_unique2)))
+  #NEW CODE
+  zz = factor(cut(z, break_unique, include.lowest = TRUE), labels = radius.level[breaks_used])        
+  radius.vector <- floor(as.numeric(as.vector((zz))))
+  
+}
+
+               
+               
+###############
 
 
-  SP.ll <- spTransform(SP, CRS("+proj=longlat +datum=WGS84"))
+SP.ll <- spTransform(SP, CRS("+proj=longlat +datum=WGS84"))
 
 
 Centar=c(mean(SP.ll@bbox[1,]),mean(SP.ll@bbox[2,]))
@@ -121,7 +146,7 @@ strokeColor<-rgb(rgbc[1],rgbc[2],rgbc[3],maxColorValue=255) }
 
 if(is.null(colPalette) & min(key.entries)<0){
   colPalette=rep("#99000D",length(key.entries))
-  colPalette[which(key.entries<0)]="#084594"
+  colPalette[which(key.entries<=0)]="#084594"
                                        }
 
 if(!is.null(colPalette)){
@@ -161,19 +186,25 @@ var<-paste(var,'var ',polyName,'=[] ; \n')
 var1=""
 
 
+# 
+# use only labels for existing intervals
+if (length(breaks_used)==length(key.entries)) {
+  print("using original PolyCol")
+  cxx <- PolyCol(factor(zz, labels = key.entries), colPalette)
+} else {
+  cxx <- PolyCol(factor(zz, labels = key.entries[breaks_used]), colPalette[breaks_used])
+}										   
+xx <- cxx$cols
 
-cxx<-PolyCol(factor(zz,labels=key.entries),colPalette)
-
-xx<-cxx$cols
-
-if( length(key.entries)==1){
-  att_L<-key.entries } else{ att_L<- factor(cut(z,break_unique,include.lowest=TRUE ) )  }
-
+if (length(key.entries) == 1) {
+  att_L <- key.entries
+} else {
+  att_L <- factor(cut(z, break_unique, include.lowest = TRUE))
+}
 
 
 
-
-var1<- paste( lapply(as.list(1:length(SP.ll@coords[,1])), function(i) paste(var1,createSphereShape(shape=shape,center=c(SP.ll@coords[i,1],
+var1<- paste( lapply(as.list(1:length(SP.ll@coords[,1])), function(i) paste(var1, createSphereShape(shape=shape,center=c(SP.ll@coords[i,1],
                                                                                                                         SP.ll@coords[i,2]),
                                                                                                    radius=radius.vector[i],
                                                                                                    fillColor=xx[i],
@@ -251,7 +282,7 @@ if (!is.list(previousMap)) {
 
 functions<-paste(functions,funs,sep="")
 
-init<-createInitialization(SP.ll,
+init<- createInitialization(SP.ll,
                            add=T,
                            name=map,
                            divname=mapCanvas,
@@ -347,9 +378,12 @@ if(control){
 }
 if(legend){
   
-  pp<-bubbleLegend(shape=shape,attribute=att_L,colPalette=colPalette
-                   ,legendName=divLegendImage,scale.level=scale.level,strokeColor=strokeColor, temp=temporary)  
-  
+#   pp<-bubbleLegend(shape=shape,attribute=att_L,colPalette=colPalette
+#                    ,legendName=divLegendImage,scale.level=scale.level,strokeColor=strokeColor, temp=temporary)  
+pp <- bubbleLegend(shape = shape, attribute = att_L, 
+                        colPalette = colPalette, legendName = divLegendImage, 
+                        scale.level = scale.level, strokeColor = strokeColor, 
+                        temp = temporary , dirname=dirname(filename) ) 
 
     endhtm<- paste(endhtm,' \n <tr>  <td> <input type="checkbox"  checked="checked" id="'
                    ,legendboxname,'" onClick=\'legendDisplay(this,"',

@@ -122,7 +122,7 @@
 }
 \value{This function returns a list with HTML, JavaScript, Google Maps API key and
        else what is necessary for the final web map. The second output is htm file ready to use stored in working direcoty.}
-\author{Milan Kilibarda \email{kili@grf.bg.ac.rs}}
+\author{Milan Kilibarda \email{kili@grf.bg.ac.rs} and Petr Stepanek}
 
 \seealso{
 \link{plotGoogleMaps},

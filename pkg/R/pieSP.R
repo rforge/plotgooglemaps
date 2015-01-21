@@ -3,7 +3,7 @@ pieSP<-function(SPDF,
                 zcol=1:length(SPDF@data),
                 scalelist=TRUE,  # TRUE proportional, FALSE pie charts same size
                 max.radius=100,  #m
-                do.sqrt = TRUE
+                do.sqrt = FALSE
 ){
   
   ####  FUNCTION modified from plotGoogleMaps package

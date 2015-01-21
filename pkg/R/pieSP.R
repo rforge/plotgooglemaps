@@ -1,10 +1,10 @@
 
 pieSP<-function(SPDF,
-              zcol=1:length(SPDF@data),
-              scalelist=TRUE,  # TRUE proportional, FALSE pie charts same size
-              max.radius=100,  #m
-              do.sqrt = TRUE
-             ){
+                zcol=1:length(SPDF@data),
+                scalelist=TRUE,  # TRUE proportional, FALSE pie charts same size
+                max.radius=100,  #m
+                do.sqrt = TRUE
+){
   
   ####  FUNCTION modified from plotGoogleMaps package
   
@@ -27,12 +27,13 @@ pieSP<-function(SPDF,
     obj = as(partOfSP, "SpatialPointsDataFrame")
     z = as.numeric(partOfSP@data)
     # avoid negative values
-    if (min(key.entries)<0 ){
-      ke<-abs(min(key.entries))+ key.entries+mean(key.entries)
-    }else{ke<-key.entries+min(key.entries)}     # no zeros for radius vecor
+    #     if (min(key.entries)<0 ){
+    #       ke<-abs(min(key.entries))+ key.entries+mean(key.entries)
+    #     }else{ke<-key.entries+min(key.entries)}     # no zeros for radius vecor
+    ke<-z
     # creating a vector for subgroupes
     if(do.sqrt){
-      scale.level<- sqrt(ke/(max(ke)) ) }else{scale.level<-ke/(max(ke))}
+      scale.level<- sqrt(ke/(sum(ke)) ) }else{scale.level<-ke/(sum(ke))}
     radius.level<-max.radius*scale.level
     # list of radiuses for createSphereCircle
     radius.vector<-   radius.level
@@ -58,7 +59,7 @@ pieSP<-function(SPDF,
     
     
     radius.vector=scalelist*max.radius/6378000
-
+    
     lat1 <- (pi/180)* center[2];
     lng1 <- (pi/180)* center[1];
     
@@ -124,16 +125,16 @@ pieSP<-function(SPDF,
   num=(rep(NA,length(zcol)*length(SP.ll@data[,1])) )
   for(i in 1:length(SP.ll@data[,1])){
     num[i*length(zcol)-(0:(length(zcol)-1))]=i
-    }
+  }
   
   Pols<- lapply( 1:length(SP.ll@data[,1]), function(i) {
-   createSphereSegment(SP.ll[i,zcol],
-                                   max.radius=max.radius,  #m
-                                   scalelist= scalelist[i],
-                                   do.sqrt = do.sqrt,
-                                   fillColor=colPalette,
-                                   strokeColor= strokeColor,
-                                   id=i*length(as.numeric(SP.ll@data[i,zcol]))) } )
+    createSphereSegment(SP.ll[i,zcol],
+                        max.radius=max.radius,  #m
+                        scalelist= scalelist[i],
+                        do.sqrt = do.sqrt,
+                        fillColor=colPalette,
+                        strokeColor= strokeColor,
+                        id=i*length(as.numeric(SP.ll@data[i,zcol]))) } )
   
   id=num  # rep(1:length(zcol),length(SP.ll@data[,1]))
   dat=data.frame(id)
@@ -148,4 +149,3 @@ pieSP<-function(SPDF,
 
 ###########################  END OF FUNCTION pie ###############################
 #
-

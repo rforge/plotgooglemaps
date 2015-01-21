@@ -6,7 +6,7 @@
               zcol=1:length(SPDF@data),
               scalelist=TRUE, 
               max.radius=100,  
-              do.sqrt = TRUE
+              do.sqrt = FALSE
              )}
 \arguments{\item{SPDF}{object of \link[sp]{SpatialPointsDataFrame-class} with
           associated coordinate reference systems }

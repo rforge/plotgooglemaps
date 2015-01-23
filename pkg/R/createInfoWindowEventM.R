@@ -20,7 +20,6 @@ function(Marker,
           pixelOffset=paste('new google.maps.Size',pixelOffset[1],',',pixelOffset[1],')')
           }
 x=paste( ' var infowindow = new google.maps.InfoWindow({ content: "",
-                                                        position:',position,
                                                        ', disableAutoPan:', disableAutoPan,
                                                         ', maxWidth :',maxWidth,
                                                         ', pixelOffset :',pixelOffset,

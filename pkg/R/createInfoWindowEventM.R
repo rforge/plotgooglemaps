@@ -19,8 +19,7 @@ function(Marker,
            if (is.numeric(position)) {
           pixelOffset=paste('new google.maps.Size',pixelOffset[1],',',pixelOffset[1],')')
           }
-x=paste( ' var infowindow = new google.maps.InfoWindow({ content: "",
-                                                       ', disableAutoPan:', disableAutoPan,
+x=paste( ' var infowindow = new google.maps.InfoWindow({ content: "", disableAutoPan:', disableAutoPan,
                                                         ', maxWidth :',maxWidth,
                                                         ', pixelOffset :',pixelOffset,
                                                         '  }); ',

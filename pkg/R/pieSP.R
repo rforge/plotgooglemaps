@@ -1,9 +1,9 @@
 
 pieSP<-function(SPDF,
-                zcol=1:length(SPDF@data),
-                scalelist=TRUE,  # TRUE proportional, FALSE pie charts same size
-                max.radius=100,  #m
-                do.sqrt = FALSE
+                  zcol=1:length(SPDF@data),
+                  scalelist=TRUE,  # TRUE proportional, FALSE pie charts same size
+                  max.radius=100,  #m
+                  do.sqrt = TRUE
 ){
   
   ####  FUNCTION modified from plotGoogleMaps package
@@ -115,8 +115,14 @@ pieSP<-function(SPDF,
     colPalette<-apply(rgbc,2,function(x) rgb(x[1],x[2],x[3],maxColorValue=255))}
   if(scalelist){
     xdata<-SP@data[,zcol]
-    xdata <- apply(xdata, 2L, function(x) (x - min(x, na.rm = TRUE))/diff(range(x, na.rm = TRUE)))
-    xsum <- apply(xdata, 1L,function(x) ( sum(x)))
+    ## Existing code commented out
+    #xdata <- apply(xdata, 2L, function(x) (x - min(x, na.rm = TRUE))/diff(range(x, na.rm = TRUE)))
+    #xsum <- apply(xdata, 1L,function(x) ( sum(x)))
+    
+    ## Sum across all columns by row to get totals of all "pie" slice values
+    ## Dividing into maximum total value gives scaling factor where largest pie
+    ## has a scaling factor of 1
+    xsum <- apply(xdata, 1L, function(x) (sum(x,na.rm=TRUE)))
     scalelist<-xsum/max(xsum)
     scalelist<-sqrt(scalelist)} else{ scalelist<-rep(1,length(SP.ll@coords[,1])) }
   

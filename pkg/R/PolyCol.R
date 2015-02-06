@@ -1,10 +1,10 @@
 PolyCol <-
 function(attribute,colPalette=NULL,at=NULL) {
-      # attribute=soil.ll@data$ID
-          pal<-colorRampPalette(c( "green", "orange","brown"), space = "Lab")
+
+pal<-colorRampPalette(c( "green", "orange","brown"), space = "Lab")
           
-          # create caracter from factor string by replacing one category i.e. key.entries with colors
-          reclassify = function(data, inCategories, outCategories)  { outCategories[ match(data, inCategories)]  }
+# create caracter from factor string by replacing one category i.e. key.entries with colors
+reclassify = function(data, inCategories, outCategories)  { outCategories[ match(data, inCategories)]  }
           
 if(!is.numeric(attribute)){ attribute<-as.factor( attribute)}
           
@@ -16,21 +16,17 @@ if(length(colPalette)==1) {
               return(col.data) }
           
 if(is.null(colPalette) ){
-      colPalette<-pal(min(10,length(attribute) ) ) }else{ xx<-colPalette<-as.character(substr(colPalette,1,7)) }
+      colPalette<-pal(min(10,length(attribute)) ) }else{ xx<-colPalette<-as.character(substr(colPalette,1,7)) }
                 
 if(is.factor(attribute)){
         
-                        if(length(colPalette)!=nlevels(attribute)) {
-                               xx<-colPalette<- as.character(substr(pal(nlevels(attribute)),1,7))    }
-                               
+    if(length(colPalette)!=nlevels(attribute)) {
+         xx<-colPalette<- as.character(substr(pal(nlevels(attribute)),1,7))    }                           
     x<- reclassify(attribute, inCategories=levels(attribute),  outCategories=colPalette)
-
-    
-                  
     col.data<-list(cols=as.character(substr(x,1,7)),col.uniq=colPalette, att=levels(attribute),brks=levels(attribute) )
     return(col.data)
                               
-                        }else{
+                }else{
                           
                           if(length(colPalette)==length(attribute)){
                             min=min(attribute)
@@ -57,23 +53,25 @@ if(is.factor(attribute)){
                                            att=attribute, brks=break_unique )
                             return(col.data)
                             
-                          }
+                          } # end of Lcp=LAtt
                           
                           if(is.null(at)){
-                               bre<-quantile(attribute, seq(1,length(colPalette))/length(colPalette), na.rm=TRUE)
+                               numcolor = length(colPalette) + 1
+                               bre<-quantile(attribute, seq(1,numcolor)/numcolor, na.rm=TRUE)
                                breakss<-factor(c(min(attribute,na.rm=T),bre))
                                break_unique<-as.numeric(levels(breakss))
                                break_unique[length(break_unique)]<-max(attribute,na.rm=T)
                                break_unique=unique(break_unique)
-                                     
-                                     if(length(colPalette)>=length(break_unique)){
-                                         colPalette<-colPalette[1:length(break_unique)] } else{
-                                                                     colPalette<- as.character(substr(colPalette[1:length(break_unique)-1],1,7))}
+                                      
+                                    if(length(colPalette)>=length(break_unique)){
+                                         colPalette<-colPalette[1:length(break_unique)] } else{ 
+                                           colPalette<- as.character(substr(colPalette[1:length(break_unique)-1],1,7))}
                                                                       
                                    }else{
                                       at[1]=min(attribute,na.rm=T)
                                       at[length(at)]=max(attribute,na.rm=T)
                                       break_unique=at
+                                      colPalette<- as.character(substr(colPalette[1:length(break_unique)-1],1,7))
                                     }   
                           
 

@@ -43,7 +43,7 @@ function(SP,
                             map="map",
                             mapCanvas="map_canvas",
                             css = "",
-                            api="https://maps.google.com/maps/api/js?sensor=false",
+                            api="https://maps.google.com/maps/api/js?sensor=false&v=3.18",
                             openMap= TRUE
                                ){
  
@@ -666,7 +666,7 @@ infW<- paste ( lapply(as.list(1:length(SP.ll@polygons)), function(i) paste(infW,
                                                                     content=att[i],
                                                                     map=InfoWindowControl$map,
                                                                     event=InfoWindowControl$event,
-                                                                    position= InfoWindowControl$position,
+                                                                    position= SP.ll[i,]@polygons[[1]]@labpt,
                                                                     disableAutoPan = InfoWindowControl$disableAutoPan,
                                                                     maxWidth=InfoWindowControl$maxWidth,
                                                                     pixelOffset=InfoWindowControl$pixelOffset,

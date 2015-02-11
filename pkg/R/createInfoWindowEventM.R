@@ -24,8 +24,9 @@ x=paste( ' var infowindow = new google.maps.InfoWindow({ content: "", disableAut
                                                         ', pixelOffset :',pixelOffset,
                                                         '  }); ',
          '\n google.maps.event.addListener(',Marker,
-',"',event,'",function(event){ \n infowindow.content="',content,'" ; 
-infowindow.position=',position ,';
+',"',event,'",function(event){ 
+\n infowindow.setContent("',content,'"); 
+\n infowindow.setPosition(event.latLng);
 infowindow.open(',map,',' ,Marker,')}); ',sep="")
 
 return(x)

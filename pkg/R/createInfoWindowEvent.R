@@ -14,7 +14,7 @@ function(Line_or_Polygon,
 
 
           if (is.numeric(position)) {
-          position=paste('position=new google.maps.LatLng(',position[2],',',position[1],')')
+          position=paste('new google.maps.LatLng(',position[2],',',position[1],')')
           }
            if (is.numeric(position)) {
           pixelOffset=paste('new google.maps.Size',pixelOffset[1],',',pixelOffset[1],')')
@@ -22,13 +22,14 @@ function(Line_or_Polygon,
 x=paste( '\n var infowindow = new google.maps.InfoWindow({ content: "", disableAutoPan:', disableAutoPan,
          ', maxWidth :',maxWidth,
          ', pixelOffset :',pixelOffset,
-         '  }); ',
+         ', position :',position ,
+         ' }); ',
          
 '\n google.maps.event.addListener(',Line_or_Polygon,
 ',"',event,'",function(event){ 
-infowindow.content="',
-content,'"; 
-infowindow.position=',position ,'; \n   infowindow.open(',map,')}); ',sep="")
+\n infowindow.setContent("',content,'"); 
+\n infowindow.setPosition(event.latLng);
+\n infowindow.open(',map,')}); ',sep="")    
 
 return(x)
 

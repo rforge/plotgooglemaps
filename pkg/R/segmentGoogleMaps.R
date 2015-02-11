@@ -41,7 +41,7 @@ function(SP,
                      map="map",
                      mapCanvas="map_canvas",
                      css = "",
-                     api="https://maps.google.com/maps/api/js?sensor=false",
+                     api="https://maps.google.com/maps/api/js?sensor=false&v=3.18",
                      openMap=TRUE) {
 
 

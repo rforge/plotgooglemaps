@@ -42,7 +42,7 @@ ellipseGoogleMaps(SP,
                   InfoWindowControl=list(map="map", event="click",position="event.latLng",
                                                    disableAutoPan=FALSE, maxWidth=330,
                                                    pixelOffset="null",zIndex="null") ,
-                  api="https://maps.google.com/maps/api/js?sensor=false",
+                  api="https://maps.google.com/maps/api/js?sensor=false&v=3.18",
                   openMap=TRUE)
 }
 \arguments{

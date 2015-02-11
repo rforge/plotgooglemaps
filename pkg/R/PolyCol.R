@@ -17,7 +17,22 @@ if(length(colPalette)==1) {
           
 if(is.null(colPalette) ){
       colPalette<-pal(min(10,length(attribute)) ) }else{ xx<-colPalette<-as.character(substr(colPalette,1,7)) }
-                
+
+if(is.null(at) & !is.factor(attribute)){
+  numcolor = length(colPalette)
+  bre<-quantile(attribute, seq(1,numcolor)/numcolor, na.rm=TRUE)
+  breakss<-factor(c(min(attribute,na.rm=T),bre))
+  break_unique<-as.numeric(levels(breakss))
+  break_unique[length(break_unique)]<-max(attribute,na.rm=T)
+  break_unique=unique(break_unique)
+  at<-break_unique
+    if(length(colPalette)>=length(break_unique)){
+      print("using original PolyCol")
+        colPalette<-colPalette[1:length(break_unique)] 
+        } else{ colPalette<- as.character(substr(colPalette[1:length(break_unique)],1,7))
+        }
+}
+
 if(is.factor(attribute)){
         
     if(length(colPalette)!=nlevels(attribute)) {
@@ -55,24 +70,24 @@ if(is.factor(attribute)){
                             
                           } # end of Lcp=LAtt
                           
-                          if(is.null(at)){
-                               numcolor = length(colPalette) + 1
-                               bre<-quantile(attribute, seq(1,numcolor)/numcolor, na.rm=TRUE)
-                               breakss<-factor(c(min(attribute,na.rm=T),bre))
-                               break_unique<-as.numeric(levels(breakss))
-                               break_unique[length(break_unique)]<-max(attribute,na.rm=T)
-                               break_unique=unique(break_unique)
-                                      
-                                    if(length(colPalette)>=length(break_unique)){
-                                         colPalette<-colPalette[1:length(break_unique)] } else{ 
-                                           colPalette<- as.character(substr(colPalette[1:length(break_unique)-1],1,7))}
-                                                                      
-                                   }else{
+#                           if(is.null(at)){
+#                                numcolor = length(colPalette) + 1
+#                                bre<-quantile(attribute, seq(1,numcolor)/numcolor, na.rm=TRUE)
+#                                breakss<-factor(c(min(attribute,na.rm=T),bre))
+#                                break_unique<-as.numeric(levels(breakss))
+#                                break_unique[length(break_unique)]<-max(attribute,na.rm=T)
+#                                break_unique=unique(break_unique)
+#                                       
+#                                     if(length(colPalette)>=length(break_unique)){
+#                                          colPalette<-colPalette[1:length(break_unique)] } else{ 
+#                                            colPalette<- as.character(substr(colPalette[1:length(break_unique)-1],1,7))}
+#                                                                       
+#                                    }else{
                                       at[1]=min(attribute,na.rm=T)
                                       at[length(at)]=max(attribute,na.rm=T)
                                       break_unique=at
                                       colPalette<- as.character(substr(colPalette[1:length(break_unique)-1],1,7))
-                                    }   
+#                                    }   
                           
 
                             

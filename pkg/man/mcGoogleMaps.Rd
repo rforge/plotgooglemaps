@@ -46,7 +46,7 @@ mcGoogleMaps(SP,
               mapCanvas="map_canvas",
               css = "",                                     
               api="https://maps.google.com/maps/api/js?sensor=false&v=3.18",
-              apiMarkerClusterer='http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/src/markerclusterer.js',
+              apiMarkerClusterer='',
               openMap=TRUE) }
 \arguments{
   \item{SP}{object of \link[sp]{Spatial-class} with
@@ -110,7 +110,7 @@ mcGoogleMaps(SP,
   \item{mapCanvas}{name of map DIV element}
   \item{css}{CSS for mapCanvas and cBoxes}
   \item{api}{see \url{https://developers.google.com/maps/documentation/javascript/tutorial}}
-  \item{apiMarkerClusterer}{see \url{http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/docs/reference.html}}
+  \item{apiMarkerClusterer}{see \url{http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/docs/reference.html}, default is v=1.0.2}
   \item{openMap}{if TRUE map is browesed by default browser}
 }
 \value{This function returns a list with HTML, JavaScript, Google Maps API key and

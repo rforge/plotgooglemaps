@@ -20,6 +20,7 @@ function(SP,
                             map.width="100%",
                             map.height="100%",
                             layerName="",
+                            layerNameEnabled=TRUE,
                             control.width="100%",
                             control.height="100%",
                             zoom=15,
@@ -36,6 +37,7 @@ function(SP,
                             scrollwheel =TRUE     ,
                             streetViewControl= FALSE,
                             legend=TRUE,
+                            legendOpacityWeightEnabled=TRUE,
                             control=TRUE,
                             InfoWindowControl=list(map=map, event="click",position="event.latLng",
                                                    disableAutoPan=FALSE, maxWidth=330,pixelOffset="null",
@@ -343,9 +345,10 @@ else if   (class(SP)[1]=="SpatialPointsDataFrame") {
                                                   zIndex=InfoWindowControl$zIndex
                                                   ),' \n')  )  ,collapse='\n' )                  
               
-
-              
-              functions<-paste(functions,infW,'showO(',pointsName,',"',boxname,'",',map,');',sep="")
+              ## If layerNameEnabled is FALSE, hide this map layer on load
+              functions<-paste(functions,infW,
+                               ifelse(layerNameEnabled,'\n showO(','\n hideO('),
+                               pointsName,',"',boxname,'",',map,');',sep="")
               
               if (!is.list(previousMap)) {
                 endhtm<-paste('</script> \n </head> \n <body onload="initialize()"> \n  <div id="',mapCanvas,'"></div>  \n
@@ -416,9 +419,10 @@ else if   (class(SP)[1]=="SpatialLines"){
                 # Put all variables together
                 var<-paste(var,var1)
                 
-                
-                
-                functions<-paste(functions,'showO(',lineName,',"',boxname,'",',map,');',sep="")
+                ## If layerNameEnabled is FALSE, hide this map layer on load
+                functions<-paste(functions,
+                                 ifelse(layerNameEnabled,'\n showO(','\n hideO('),
+                                 lineName,',"',boxname,'",',map,');',sep="")
                 
                 if (!is.list(previousMap)) {
                   endhtm<-paste('</script> \n </head> \n <body onload="initialize()"> \n  <div id="',mapCanvas,'"></div>  \n
@@ -497,9 +501,10 @@ else if   (class(SP)[1]=="SpatialLinesDataFrame")     {
                     
                     ' \n')  )  ,collapse='\n' )
             
-            
-            functions<-paste(functions,infW,'showO(',lineName,',"',boxname,'",',map,');',sep="")
-            
+            ## If layerNameEnabled is FALSE, hide this map layer on load
+            functions<-paste(functions,infW,
+                             ifelse(layerNameEnabled,'\n showO(','\n hideO('),
+                             lineName,',"',boxname,'",',map,');',sep="")
             
             if (!is.list(previousMap)) {
               endhtm<-paste('</script> \n </head> \n <body onload="initialize()"> \n  <div id="',mapCanvas,'"></div>  \n
@@ -581,9 +586,10 @@ else if   (class(SP)[1]=="SpatialPolygons")             {
               # Put all variables together
               var<-paste(var,var1)
               
-              
-              functions<-paste(functions,'\n showO(',polyName,',"',boxname,'",',map,'); \n',sep="")
-              
+              ## If layerNameEnabled is FALSE, hide this map layer on load
+              functions<-paste(functions,
+                               ifelse(layerNameEnabled,'\n showO(','\n hideO('),
+                               polyName,',"',boxname,'",',map,'); \n',sep="")
               
               if (!is.list(previousMap)) {
                 endhtm<-paste('</script> \n </head> \n <body onload="initialize()"> \n  <div id="',mapCanvas,'"></div>  \n
@@ -591,19 +597,25 @@ else if   (class(SP)[1]=="SpatialPolygons")             {
               } else { endhtm<- previousMap$endhtm }
               
               if(control){
-              endhtm<- paste(endhtm,'<table border="0"> \n <tr> \n  <td> <input 
+                endhtm<- paste(endhtm,'<table border="0"> \n <tr> \n  <td> <input 
                             type="checkbox" id="',boxname,'" onClick=\'boxclick(this,',
-                            polyName,',"',boxname,'",',map,');\' /> ', 
-                            layerName ,' </td>  </tr> \n',sep="")
-              endhtm<- paste(endhtm,' \n <tr> <td> \n <input type="text" id="',
-                             textname,'" value="50" onChange=\'setOpac(',
-                             polyName,',"',textname,'")\' size=3 /> 
+                               polyName,',"',boxname,'",',map,');\' /> ', 
+                               layerName ,' </td>  </tr> \n',sep="")
+                
+                ## Show Opacity and Line Weight controls in legend?
+                if(legendOpacityWeightEnabled) {
+                  endhtm<- paste(endhtm,' \n <tr> <td> \n <input type="text" id="',
+                                 textname,'" value="50" onChange=\'setOpac(',
+                                 polyName,',"',textname,'")\' size=3 /> 
                              Opacity (0-100 %) </td> </tr> \n',sep="")
-              endhtm<- paste(endhtm,' \n <tr> <td> \n <input type="text"  checked="checked"  id="',
-                             textnameW,'" value="1" onChange=\'setLineWeight(',
-                              polyName,',"',textnameW,'")\' size=3 /> Line weight
-                               (pixels) </td> </tr> \n </table> \n',sep="")
-                          }
+                  endhtm<- paste(endhtm,' \n <tr> <td> \n <input type="text"  checked="checked"  id="',
+                                 textnameW,'" value="1" onChange=\'setLineWeight(',
+                                 polyName,',"',textnameW,'")\' size=3 /> Line weight
+                               (pixels) </td> </tr> \n',sep="")
+                } else 
+                  endhtm<- paste(endhtm,'</table> \n')
+                
+              }
               
                }
                
@@ -662,22 +674,23 @@ att<- paste ( lapply(as.list(1:length(SP.ll@polygons)), function(i) paste(names(
                   
                   infW<-""
 infW<- paste ( lapply(as.list(1:length(SP.ll@polygons)), function(i) paste(infW,createInfoWindowEvent(Line_or_Polygon=
-                                                                    paste(polyName,'[',i-1,'] ',sep=""),
-                                                                    content=att[i],
-                                                                    map=InfoWindowControl$map,
-                                                                    event=InfoWindowControl$event,
-                                                                    position= SP.ll[i,]@polygons[[1]]@labpt,
-                                                                    disableAutoPan = InfoWindowControl$disableAutoPan,
-                                                                    maxWidth=InfoWindowControl$maxWidth,
-                                                                    pixelOffset=InfoWindowControl$pixelOffset,
-                                                                    zIndex=InfoWindowControl$zIndex)
-                                                                    ,' \n')  )  ,collapse='\n' )                  
+                                                                                                        paste(polyName,'[',i-1,'] ',sep=""),
+                                                                                                      content=att[i],
+                                                                                                      map=InfoWindowControl$map,
+                                                                                                      event=InfoWindowControl$event,
+                                                                                                      position= SP.ll[i,]@polygons[[1]]@labpt,
+                                                                                                      disableAutoPan = InfoWindowControl$disableAutoPan,
+                                                                                                      maxWidth=InfoWindowControl$maxWidth,
+                                                                                                      pixelOffset=InfoWindowControl$pixelOffset,
+                                                                                                      zIndex=InfoWindowControl$zIndex)
+                                                                           ,' \n')  )  ,collapse='\n' )                  
 
                   
-                  functions<-paste(functions,infW,'showO(',polyName,',"',boxname,'",',map,');',sep="")
-                  
-                  
-                  
+                  ## If layerNameEnabled is FALSE, hide this map layer on load
+                  functions<-paste(functions,infW,
+                                   ifelse(layerNameEnabled,'\n showO(','\n hideO('),
+                                   polyName,',"',boxname,'",',map,');',sep="")
+
                   if (!is.list(previousMap)) {
                     endhtm<-paste('</script> \n </head> \n <body onload="initialize()"> \n  <div id="',mapCanvas,'"></div>  \n
                            \n <div id="cBoxes"> \n', sep='')  
@@ -688,15 +701,19 @@ infW<- paste ( lapply(as.list(1:length(SP.ll@polygons)), function(i) paste(infW,
                                  <input type="checkbox" id="',boxname,'" 
                                  onClick=\'boxclick(this,',polyName,',"',boxname,
                                  '",',map,');\' /> <b> ', layerName,'<b> </td> </tr> \n',sep="")
-                  endhtm<- paste(endhtm,' \n <tr> <td> \n <input type="text" id="',
-                                 textname,'" value="50" onChange=\'setOpac(',
-                                 polyName,',"',textname,'")\' size=3 /> 
-                                 Opacity (0-100 %) </td> </tr> \n',sep="")
-                  endhtm<- paste(endhtm,' \n <tr>  <td> \n <input type="text" 
-                                 id="',textnameW,'" value="1" onChange=\'
-                                 setLineWeight(',polyName,',"',textnameW,'")\' 
-                                 size=3 /> Line weight (pixels) </td> </tr> \n ',sep="")
-                                 }
+                  
+                  ## Show Opacity and Line Weight controls in legend?
+                  if(legendOpacityWeightEnabled) {
+                    endhtm<- paste(endhtm,' \n <tr> <td> \n <input type="text" id="',
+                                   textname,'" value="50" onChange=\'setOpac(',
+                                   polyName,',"',textname,'")\' size=3 /> 
+                                   Opacity (0-100 %) </td> </tr> \n',sep="")
+                    endhtm<- paste(endhtm,' \n <tr>  <td> \n <input type="text" 
+                                   id="',textnameW,'" value="1" onChange=\'
+                                   setLineWeight(',polyName,',"',textnameW,'")\' 
+                                   size=3 /> Line weight (pixels) </td> </tr> \n ',sep="")
+                  } 
+                 }
                   if(legend){
                     divLegendImage<-tempfile("Legend")  
                     divLegendImage<-substr(divLegendImage, start=regexpr("Legend",divLegendImage),stop=nchar(divLegendImage))

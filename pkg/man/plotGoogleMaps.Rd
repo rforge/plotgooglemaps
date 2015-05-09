@@ -25,6 +25,7 @@ plotGoogleMaps(SP,
               map.width="100\%",
               map.height="100\%",
               layerName="",
+              layerNameEnabled=TRUE,
               control.width="100\%",
               control.height="100\%",
               zoom = 15, 
@@ -41,6 +42,7 @@ plotGoogleMaps(SP,
               scrollwheel = TRUE, 
               streetViewControl = FALSE,
               legend=TRUE,
+              legendOpacityWeightEnabled=TRUE,
               control=TRUE,
               InfoWindowControl=list(map=map, event="click",position="event.latLng",
                                                    disableAutoPan=FALSE, maxWidth=330,
@@ -79,6 +81,8 @@ plotGoogleMaps(SP,
   \item{map.height}{the height of the map. Can be in percent or in pixels (px)}
   \item{layerName}{the name of the layer. Layer name appears on the check box for
                      switching layer of and on in output htm.}
+  \item{layerNameEnabled}{controls whether the layer is enabled (shown) when
+                      the map is loaded. Default is TRUE}
   \item{control.width}{the width of the part of htm for controlling layer  (legend, opacity,...)
                            Can be in percent or in pixels (px).}
   \item{control.height}{the height of the part of htm for controlling layer  (legend, opacity,...)
@@ -110,6 +114,7 @@ plotGoogleMaps(SP,
   \item{scrollwheel}{if FALSE, disables scrollwheel zooming on the map.}
   \item{streetViewControl}{The initial enabled or disabled state of the Street View pegman control}
   \item{legend}{if FALSE, disables legend.}
+  \item{legendOpacityWeightEnabled}{if FALSE, Opacity and Line Weight controls are not shown in legend}
   \item{control}{if FALSE, disables control.}
   \item{InfoWindowControl}{see \url{https://developers.google.com/maps/documentation/javascript/reference#InfoWindowOptions}}
   \item{map}{name of map object in JavaScript}

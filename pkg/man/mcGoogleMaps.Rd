@@ -5,49 +5,53 @@
              data as a combination of users' data and Google Maps layers. Ready to use as local htm file or into your own website. This function uses MarkerClusterer for Google Maps v3 - library creates and manages per-zoom-level clusters for large amounts of markers.}
 \usage{
 mcGoogleMaps(SP, 
-              filename = '',
-              zcol = 1,
-              at=NULL,
-              add = FALSE, 
-              previousMap = NULL,
-              colPalette = NULL,
-              geodesic = TRUE, 
-              clickable = TRUE,
-              draggableMarker = FALSE,
-              iconMarker='',
-              flat = TRUE, 
-              visible = TRUE, 
-              zIndex = 'null',
-              map.width="100\%",
-              map.height="100\%",
-              layerName="",
-              control.width="100\%",
-              control.height="100\%",
-              zoom = 15, 
-              fitBounds = TRUE,
-              mapTypeId = 'HYBRID', 
-              disableDoubleClickZoom = FALSE, 
-              draggable = TRUE, 
-              keyboardShortcuts = TRUE, 
-              mapTypeControlOptions = 'DEFAULT',
-              navigationControl = TRUE,
-              navigationControlOptions = 'DEFAULT', 
-              scaleControlOptions = 'STANDARD',
-              noClear = FALSE,
-              scrollwheel = TRUE, 
-              streetViewControl = FALSE,
-              legend=TRUE,
-              control=TRUE,
-              InfoWindowControl=list(map=map, event="click",position="event.latLng",
-                                                   disableAutoPan=FALSE, maxWidth=330,
-                                                   pixelOffset="null",
-                                                   zIndex="null") ,
-              map="map",
-              mapCanvas="map_canvas",
-              css = "",                                     
-              api="https://maps.google.com/maps/api/js?sensor=false&v=3.18",
-              apiMarkerClusterer='',
-              openMap=TRUE) }
+             filename = '',
+             zcol = 1,
+             at=NULL,
+             add = FALSE, 
+             previousMap = NULL,
+             colPalette = NULL,
+             geodesic = TRUE, 
+             clickable = TRUE,
+             draggableMarker = FALSE,
+             iconMarker='',
+             flat = TRUE, 
+             visible = TRUE, 
+             zIndex = 'null',
+             map.width="100\%",
+             map.height="100\%",
+             layerName="",
+             layerNameEnabled = TRUE,
+             control.width="100\%",
+             control.height="100\%",
+             zoom = 15, 
+             fitBounds = TRUE,
+             mapTypeId = 'HYBRID', 
+             disableDoubleClickZoom = FALSE, 
+             draggable = TRUE, 
+             keyboardShortcuts = TRUE, 
+             mapTypeControlOptions = 'DEFAULT',
+             navigationControl = TRUE,
+             navigationControlOptions = 'DEFAULT', 
+             scaleControlOptions = 'STANDARD',
+             noClear = FALSE,
+             scrollwheel = TRUE, 
+             streetViewControl = FALSE,
+             legend=TRUE,
+             control=TRUE,
+             InfoWindowControl=list(map=map, event="click",position="event.latLng",
+                                             disableAutoPan=FALSE, maxWidth=330,
+                                             pixelOffset="null",
+                                             zIndex="null") ,
+             funcSetInfoWindowText=NULL,
+             funcSetMarkerTitleText=NULL,
+             map="map",
+             mapCanvas="map_canvas",
+             css = "",                                     
+             api="https://maps.googleapis.com/maps/api/js?libraries=visualization",
+             apiMarkerClusterer='',
+             openMap=TRUE,
+             ...) }
 \arguments{
   \item{SP}{object of \link[sp]{Spatial-class} with
           associated coordinate reference systems}
@@ -73,6 +77,7 @@ mcGoogleMaps(SP,
   \item{map.height}{the height of the map. Can be in percent or in pixels (px)}
   \item{layerName}{the name of the layer. Layer name appears on the check box for
                      switching layer of and on in output htm.}
+  \item{layerNameEnabled}{controls whether the layer is enabled (shown) when the map is loaded. Default is TRUE}
   \item{control.width}{the width of the part of htm for controlling layer  (legend, opacity,...)
                            Can be in percent or in pixels (px).}
   \item{control.height}{the height of the part of htm for controlling layer  (legend, opacity,...)
@@ -82,7 +87,7 @@ mcGoogleMaps(SP,
               to 19 (the highest zoom level, down to individual buildings) are 
               possible within the normal maps view. Argument fitBounds should be FALSE.}
   \item{fitBounds}{sets the maps to fit to the boundary box values of sp object}
- \item{mapTypeId}{the initial Map mapTypeId. 
+  \item{mapTypeId}{the initial Map mapTypeId. 
 'HYBRID' - map type displays a transparent layer of major streets on satellite images. 
 'ROADMAP' - map type displays a normal street map. 'SATELLITE' - map type displays satellite images. 
 'TERRAIN' - map type displays maps with physical features such as terrain and vegetation.}
@@ -106,12 +111,15 @@ mcGoogleMaps(SP,
   \item{legend}{if FALSE, disables legend.}
   \item{control}{if FALSE, disables control.}
   \item{InfoWindowControl}{see \url{https://developers.google.com/maps/documentation/javascript/reference#InfoWindowOptions}}
+  \item{funcSetInfoWindowText}{An R callback function that takes the spatial object supplied (SP) and returns a character vector of the same length as the length of SP which contains the text to show in the pop-up InfoWindow. The returned character vector can contain HTML code}
+  \item{funcSetMarkerTitleText}{An R callback function that takes the spatial object supplied (SP) and returns a character vector of the same length as the length of SP which contains the text to show as tool-tip text for a marker. The returned character vector must only consist of text}
   \item{map}{name of map object in JavaScript}
   \item{mapCanvas}{name of map DIV element}
   \item{css}{CSS for mapCanvas and cBoxes}
   \item{api}{see \url{https://developers.google.com/maps/documentation/javascript/tutorial}}
   \item{apiMarkerClusterer}{see \url{http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerclusterer/docs/reference.html}, default is v=1.0.2}
   \item{openMap}{if TRUE map is browesed by default browser}
+  \item{...}{optional arguments}
 }
 \value{This function returns a list with HTML, JavaScript, Google Maps API key and
        else what is necessary for the final web map. The second output is html file ready to use.}

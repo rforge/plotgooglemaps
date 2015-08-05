@@ -1,60 +1,57 @@
-\name{plotGoogleMaps}
-\alias{plotGoogleMaps}
-\title{Create a plot of spatial data on Google Maps}
-\description{Plot htm output with Google Maps API and a plot of spatial
-             data as a combination of users' data and Google Maps layers. Ready to use as local htm file or into your own website.}
+\name{symbolGoogleMaps}
+\alias{symbolGoogleMaps}
+\title{Create a plot of SpatialPointsDataFrame data using SVG symbols in Google Maps}
+\description{Uses Google Maps to visualize data in a SpatialPointsDataFrame as a collection of customizable SVG symbols. See the following for more information: https://developers.google.com/maps/documentation/javascript/symbols}
 \usage{
-plotGoogleMaps(SP, 
-               filename = '',
-               zcol = 1,
-               at=NULL,
-               add = FALSE, 
-               previousMap = NULL,
-               colPalette = NULL,
-               strokeColor = "",
-               strokeOpacity = 1,
-               fillOpacity=0.7,
-               strokeWeight = 1,
-               geodesic = TRUE, 
-               clickable = TRUE,
-               draggableMarker = FALSE,
-               iconMarker='',
-               flat = TRUE, 
-               visible = TRUE, 
-               zIndex = 'null',
-               map.width="100\%",
-               map.height="100\%",
-               layerName="",
-               layerNameEnabled = TRUE,
-               control.width="100\%",
-               control.height="100\%",
-               zoom = 15, 
-               fitBounds = TRUE,
-               mapTypeId = 'HYBRID', 
-               disableDoubleClickZoom = FALSE, 
-               draggable = TRUE, 
-               keyboardShortcuts = TRUE, 
-               mapTypeControlOptions = 'DEFAULT',
-               navigationControl = TRUE,
-               navigationControlOptions = 'DEFAULT', 
-               scaleControlOptions = 'STANDARD',
-               noClear = FALSE,
-               scrollwheel = TRUE, 
-               streetViewControl = FALSE,
-               legend=TRUE,
-               legendOpacityWeightEnabled = TRUE,
-               control=TRUE,
-               InfoWindowControl=list(map=map, event="click",position="event.latLng",
-                                               disableAutoPan=FALSE, maxWidth=330,
-                                               pixelOffset="null",zIndex="null") ,
-               funcSetInfoWindowText = NULL,
-               funcSetMarkerTitleText = NULL,
-               map = "map",
-               mapCanvas = "map_canvas",
-               css = "",                                     
-               api="https://maps.googleapis.com/maps/api/js?libraries=visualization",
-               openMap = TRUE,
-               ...) }
+symbolGoogleMaps(SP, 
+                 filename = '',
+                 zcol = 1,
+                 add = FALSE, 
+                 previousMap = NULL,
+                 symbolPath = 'google.maps.SymbolPath.CIRCLE',
+                 minScale = 5,
+                 zcolIndexBase = mean(sqrt(SP@data[,zcol]/pi)*2,na.rm = TRUE),
+                 symbolFillColor = "red",
+                 symbolFillOpacity = 0.7,
+                 strokeColor = "white",
+                 strokeOpacity = 1,
+                 strokeWeight = 1,
+                 clickable = TRUE,
+                 draggableMarker = FALSE,
+                 flat = TRUE,
+                 visible = TRUE,
+                 zIndex = "null",
+                 map.width = "100\%",
+                 map.height = "100\%",
+                 layerName = "",
+                 layerNameEnabled = TRUE,
+                 control.width = "100\%",
+                 control.height = "100\%",
+                 zoom = 15, 
+                 fitBounds = TRUE,
+                 mapTypeId = 'HYBRID', 
+                 disableDoubleClickZoom = FALSE, 
+                 draggable = TRUE, 
+                 keyboardShortcuts = TRUE, 
+                 mapTypeControlOptions = 'DEFAULT',
+                 navigationControl = TRUE,
+                 navigationControlOptions = 'DEFAULT', 
+                 scaleControlOptions = 'STANDARD',
+                 noClear = FALSE,
+                 scrollwheel = TRUE, 
+                 streetViewControl = FALSE,
+                 control = TRUE,
+                 InfoWindowControl = list(map=map, event="click",position="event.latLng",
+                                          disableAutoPan=FALSE, maxWidth=330,
+                                          pixelOffset="null",zIndex="null"),
+                 funcSetInfoWindowText=NULL,
+                 funcSetMarkerTitleText=NULL,
+                 map = "map",
+                 mapCanvas = "map_canvas",
+                 css = "",                                     
+                 api = "https://maps.googleapis.com/maps/api/js?libraries=visualization",
+                 openMap = TRUE,
+                 ...) }
 \arguments{
   \item{SP}{object of \link[sp]{Spatial-class} with
           associated coordinate reference systems}
@@ -62,24 +59,26 @@ plotGoogleMaps(SP,
          the function creates temporary file.}
   \item{zcol}{variable column name, or column number after removing spatial coordinates 
              from x@data: 1 refers to the first non-coordinate column}
-  \item{at}{values at which colours will change}
   \item{add}{logical; if TRUE the result of the function will be a list stored as variable 
              in the R. It is possible to combine more layers in the one plot, previously saved
              output from plotGoogleMaps should be given in the previousMap attribute.}
   \item{previousMap}{previously saved variable from plotGoogleMaps or bubbleGoogleMaps when attribute add is TRUE.
                      It is solution for combining more than one layers in the one plot.}
-  \item{colPalette}{colours to be used to fill polygon or colour for the line}
-  \item{strokeColor}{the color to draw the borders of polygon, NULL for no border}
-  \item{strokeOpacity}{the stroke opacity between 0.0 and 1.0 for the polygon or line}
-  \item{fillOpacity}{the fill opacity (polygons) between 0.0 and 1.0}
-  \item{strokeWeight}{the stroke width in pixels for polygon border or line}
-  \item{geodesic}{render each edge as a geodesic (a segment of a 'great circle')}
-  \item{clickable}{indicates whether this marker (point), polygon or line handles click events}
-  \item{draggableMarker}{if TRUE, the marker can be dragged}
-  \item{iconMarker}{if '' default marker icon, link to the image or local image to be used as marker image}
+
+  \item{symbolPath}{Google Maps symbol path. Default is google.maps.SymbolPath.CIRCLE}
+  \item{minScale}{Number of pixels to use for the minimum value in zcol}
+  \item{zcolIndexBase}{Denominator used to normalize zcol values. Default is mean(sqrt(SP@data[,zcol]/pi)*2,na.rm = TRUE)}
+  \item{symbolFillColor}{Fill color for symbol interior. Default is 'red'}
+  \item{symbolFillOpacity}{Opacity of symbols. Range is 0-1, default is 0.7}
+  \item{strokeColor}{Stroke color for symbol outlines. Default is 'white'}
+  \item{strokeOpacity}{Stroke opacity for symbol outlines. Range is 0-1, default is 1}
+  \item{strokeWeight}{Stroke weight for symbol outlines. Default is 1}
+  \item{clickable}{indicates whether this symbol (point) handles click events}
+  \item{draggableMarker}{if TRUE, the symbol can be dragged}
   \item{flat}{if TRUE, the marker shadow will not be displayed}
   \item{visible}{if TRUE, the marker is visible}
-  \item{zIndex}{the zIndex compared to other polygons}
+  \item{zIndex}{the zIndex compared to other polygons. This can be specified as a vector of length(SP).}
+
   \item{map.width}{the width of the map. Can be in percent or in pixels (px)}
   \item{map.height}{the height of the map. Can be in percent or in pixels (px)}
   \item{layerName}{the name of the layer. Layer name appears on the check box for
@@ -115,8 +114,6 @@ plotGoogleMaps(SP,
   \item{noClear}{if TRUE, do not clear the contents of the Map div.}
   \item{scrollwheel}{if FALSE, disables scrollwheel zooming on the map.}
   \item{streetViewControl}{The initial enabled or disabled state of the Street View pegman control}
-  \item{legend}{if FALSE, disables legend.}
-  \item{legendOpacityWeightEnabled}{if FALSE, Opacity and Line Weight controls are not shown in legend}
   \item{control}{if FALSE, disables control.}
   \item{InfoWindowControl}{see \url{https://developers.google.com/maps/documentation/javascript/reference#InfoWindowOptions}}
   \item{funcSetInfoWindowText}{An R callback function that takes the spatial object supplied (SP) and returns a character vector of the same length as the length of SP which contains the text to show in the pop-up InfoWindow. The returned character vector can contain HTML code}
@@ -130,10 +127,12 @@ plotGoogleMaps(SP,
 }
 \value{This function returns a list with HTML, JavaScript, Google Maps API key and
        else what is necessary for the final web map. The second output is html file ready to use.}
-\author{Milan Kilibarda <kili@grf.bg.ac.rs>}
+\author{Milan Kilibarda <kili@grf.bg.ac.rs>, Dan Cheng <dan.cheng@insightanalyticsinc.com>}
 \seealso{
 \link{bubbleGoogleMaps},
 \link{ellipseGoogleMaps},
+\link{heatmapGoogleMaps},
+\link{plotGoogleMaps},
 \link{segmentGoogleMaps}
 }
 \examples{
@@ -143,19 +142,9 @@ data(meuse)
 require(maptools)
 coordinates(meuse)<-~x+y
 proj4string(meuse) <- CRS('+init=epsg:28992')
-# Line data
-data(meuse.grid)
-coordinates(meuse.grid)<-c('x','y')
-meuse.grid<-as(meuse.grid,'SpatialPixelsDataFrame')
-im<-as.image.SpatialGridDataFrame(meuse.grid['dist'])
-cl<-ContourLines2SLDF(contourLines(im))
-proj4string(cl) <- CRS('+init=epsg:28992')
 
-# Create web map of Point data
-m<-plotGoogleMaps(meuse) 
+# Create symbol map of point data based upon the values 
+# of cadmium measurements
+m<-symbolGoogleMaps(meuse,zcol = "cadmium") 
 
-# Combine point and line data
-mapMeusePoints<- plotGoogleMaps(meuse,add=TRUE,mapTypeId='TERRAIN',filename='myMap2.htm')
-mapMeuseCl<- plotGoogleMaps(cl,previousMap=mapMeusePoints,filename='myMap2.htm')
-# see results in your working directory
 }

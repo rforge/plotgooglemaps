@@ -16,6 +16,7 @@ mcGoogleMaps <-
            map.width="100%",
            map.height="100%",
            layerName="",
+           layerNameEnabled=TRUE,
            control.width="100%",
            control.height="100%",
            zoom=15,
@@ -36,14 +37,29 @@ mcGoogleMaps <-
            InfoWindowControl=list(map=map, event="click",position="event.latLng",
                                   disableAutoPan=FALSE, maxWidth=330,pixelOffset="null",
                                   zIndex="null") ,
+           funcSetInfoWindowText=NULL,
+           funcSetMarkerTitleText=NULL,
            map="map",
            mapCanvas="map_canvas",
            css = "",
-           api="https://maps.google.com/maps/api/js?sensor=false&v=3.18",
+           api="https://maps.googleapis.com/maps/api/js?libraries=visualization",
            apiMarkerClusterer='',
-           openMap= TRUE
-  ){
+           openMap= TRUE,
+           ...){
     
+    ## Check new arguments
+    if(!is.logical(layerNameEnabled)) {
+      warning("layerNameEnabled must be TRUE to show map layer on map load or FALSE to hide map layer. Using default of TRUE")
+      layerNameEnabled <- TRUE
+    }
+    if(!is.null(funcSetInfoWindowText) && !is.function(funcSetInfoWindowText)) {
+      warning("funcSetInfoWindowText must be NULL or a function that accepts a sp object and returns a character vector of InfoWindow marker strings. Using defaults.")
+      funcSetInfoWindowText <- NULL
+    }
+    if(!is.null(funcSetMarkerTitleText) && !is.function(funcSetMarkerTitleText)) {
+      warning("funcSetMarkerTitleText must be NULL or a function that accepts a sp object and returns a character vector of marker title strings. Using defaults.")
+      funcSetMarkerTitleText <- NULL
+    }
     
     nameOfSP<-sapply(as.list(substitute({SP})[-1]), deparse)
     nameOfSP<-gsub("\\s","", nameOfSP)
@@ -51,7 +67,8 @@ mcGoogleMaps <-
     nameOfSP<-gsub('[[]', "X", nameOfSP)
     nameOfSP<-gsub('[]]', "X", nameOfSP)
     temporary = FALSE 
-    if(filename==""){
+    ## 6/26/2015: Only use temporary folder (vs. current working directory) if filename is "" AND add is FALSE
+    if(filename=="" && !add){
       filename <- tempfile("map", fileext = c(".html"))
       temporary = TRUE
     }
@@ -114,54 +131,7 @@ mcGoogleMaps <-
       functions<-""
       # Creating functions for checkbox comtrol, Show , Hide and Toggle control
       # Set of JavaScript functionalities
-      funs ='function showR(R,boxname, map) {
-      R.setMap(map);
-      document.getElementById(boxname).checked = true; }
-      
-      function hideR(R,boxname) {
-      R.setMap(null);
-      document.getElementById(boxname).checked = false; }
-      
-      function showO(MLPArray,boxname, map ) { 
-      for (var i = 0; i < MLPArray.length; i++) { 
-      MLPArray[i].setMap(map); } 
-      document.getElementById(boxname).checked = true; }
-      
-      function hideO(MLPArray,boxname) { 
-      for (var i = 0; i < MLPArray.length; i++) { 
-      MLPArray[i].setMap(null);} 
-      document.getElementById(boxname).checked = false; } 
-      
-      function boxclick(box,MLPArray,boxname, map) { 
-      if (box.checked) { showO(MLPArray,boxname, map); 
-      }else {  hideO(MLPArray,boxname);} }
-      
-      function setOpac(MLPArray,textname){
-      opacity=0.01*parseInt(document.getElementById(textname).value) 
-      for(var i = 0; i < MLPArray.length; i++) {
-      MLPArray[i].setOptions({strokeOpacity: opacity, fillOpacity: opacity}); }}
-      
-      function setOpacL(MLPArray,textname) {
-      opacity=0.01*parseInt(document.getElementById(textname).value) 
-      for (var i = 0; i < MLPArray.length; i++) {
-      MLPArray[i].setOptions({strokeOpacity: opacity});}}
-      
-      function setLineWeight(MLPArray,textnameW){
-      weight=parseInt(document.getElementById(textnameW).value)
-      for (var i = 0; i < MLPArray.length; i++){
-      MLPArray[i].setOptions({strokeWeight: weight}); } }
-      
-      function legendDisplay(box,divLegendImage){
-      element = document.getElementById(divLegendImage).style;
-      if (box.checked){ element.display="block";} else {  element.display="none";}}
-      
-      function boxclickR(box,R,boxname, map) {
-      if (box.checked){
-      showR(R,boxname,map); } else { hideR(R,boxname);} }
-      
-      function legendDisplay(box,divLegendImage){
-      element = document.getElementById(divLegendImage).style; 
-      if (box.checked){ element.display="block";} else {  element.display="none";}}  \n '
+      funs <- createMapFunctions()
       
       functions<-paste(functions,funs,sep="")
       
@@ -191,14 +161,14 @@ mcGoogleMaps <-
     
     fjs<-paste(fjs,'\n USGSOverlay.prototype = new google.maps.OverlayView(); \n',sep="")
     fjs<-paste(fjs,'function USGSOverlay(bounds, image, map) {\n      this.bounds_ = bounds;\n      this.image_ = image;\n      this.map_ = map;\n      this.div_ = null;\n      this.setMap(map); }\n',sep="")
-    fjs<-paste(fjs, 'USGSOverlay.prototype.onAdd = function() {\n      var div = document.createElement("DIV");\n      div.style.border = "none";\n      div.style.borderWidth = "0px";\n      div.style.position = "absolute";\n      var img = document.createElement("img");\n      img.src = this.image_;\n      img.style.width = "100%";\n      img.style.height = "100%";\n      div.appendChild(img);\n      this.div_ = div;\n      this.div_.style.opacity = ',fillOpacity,';\n      var panes = this.getPanes();\n      panes.overlayImage.appendChild(this.div_);}\n' ,sep="")
+    fjs<-paste(fjs,'USGSOverlay.prototype.onAdd = function() {\n      var div = document.createElement("DIV");\n      div.style.border = "none";\n      div.style.borderWidth = "0px";\n      div.style.position = "absolute";\n      var img = document.createElement("img");\n      img.src = this.image_;\n      img.style.width = "100%";\n      img.style.height = "100%";\n      div.appendChild(img);\n      this.div_ = div;\n      this.div_.style.opacity = ',fillOpacity,';\n      var panes = this.getPanes();\n      panes.overlayImage.appendChild(this.div_);}\n' ,sep="")
     fjs<-paste(fjs,'USGSOverlay.prototype.draw = function() {\n        var overlayProjection = this.getProjection();\n        var sw = overlayProjection.fromLatLngToDivPixel(this.bounds_.getSouthWest());\n        var ne = overlayProjection.fromLatLngToDivPixel(this.bounds_.getNorthEast());\n        var div = this.div_;\n        div.style.left = sw.x + "px";\n        div.style.top = ne.y + "px";\n        div.style.width = (ne.x - sw.x) + "px";\n        div.style.height = (sw.y - ne.y) + "px";} \n' ,sep="")
     fjs<-paste(fjs,'USGSOverlay.prototype.onRemove = function() { \n this.div_.parentNode.removeChild(this.div_);} \n' ,sep="")
     fjs<-paste(fjs,'USGSOverlay.prototype.hide = function() { if (this.div_) { this.div_.style.visibility = "hidden";} } \n' ,sep="")
     fjs<-paste(fjs,'USGSOverlay.prototype.show = function() {if (this.div_) {  this.div_.style.visibility = "visible";}} \n' ,sep="")
-    fjs<-paste(fjs,'       USGSOverlay.prototype.toggle = function() { \n if (this.div_) { \n  if (this.div_.style.visibility == "hidden") {  \n   this.show(); \n  } else { \n  this.hide(); } } } \n' ,sep="")
-    fjs<-paste(fjs,' USGSOverlay.prototype.toggleDOM = function() {\n          if (this.getMap()) {\n            this.setMap(null);\n          } else {\n            this.setMap(this.map_);}}\n' ,sep="")
-    fjs<-paste(fjs,' function setOpacR(Raster,textname) { \n  opac=0.01*parseInt(document.getElementById(textname).value) \n    Raster.div_.style.opacity= opac } \n' ,sep="")
+    fjs<-paste(fjs,'USGSOverlay.prototype.toggle = function() { \n if (this.div_) { \n  if (this.div_.style.visibility == "hidden") {  \n   this.show(); \n  } else { \n  this.hide(); } } } \n' ,sep="")
+    fjs<-paste(fjs,'USGSOverlay.prototype.toggleDOM = function() {\n          if (this.getMap()) {\n            this.setMap(null);\n          } else {\n            this.setMap(this.map_);}}\n' ,sep="")
+    fjs<-paste(fjs,'function setOpacR(Raster,textname) { \n  opac=0.01*parseInt(document.getElementById(textname).value) \n    Raster.div_.style.opacity= opac } \n' ,sep="")
     
     if(map.width!=control.width & css==""){
       css= paste('\n #',mapCanvas,' { float: left;
@@ -239,28 +209,32 @@ mcGoogleMaps <-
         # Create all markers and store them in markersArray - PointsName
       }else{ var<-previousMap$var}
       
-      var<-paste(var,'var ',pointsName,'=[] ;')
+      var<-paste(var,'var ',pointsName,'=[]; \n')
       var1=""
       
       
-      var1<- paste( sapply(as.list(1:length(SP.ll@coords[,1])), function(i) paste(var1,createMarker(SP.ll@coords[i,],
-                                                                                                    title=paste(nameOfSP,
-                                                                                                                ' NO: ',as.character(i),sep=""),
-                                                                                                    clickable=clickable,
-                                                                                                    draggable=draggableMarker,
-                                                                                                    flat=flat,
-                                                                                                    visible=visible,
-                                                                                                    map=map,
-                                                                                                    icon=iconMarker[i],
-                                                                                                    zIndex=zIndex),'\n',sep="") 
-      )
-      ,pointsName,'.push(marker); \n',sep="",collapse='\n')
+      var1 <- paste(sapply(as.list(1:length(SP.ll@coords[,1])), 
+                           function(i) 
+                             paste(var1,createMarker(SP.ll@coords[i,],
+                                                     title=paste(nameOfSP,
+                                                                 ' NO: ',as.character(i),sep=""),
+                                                     clickable=clickable,
+                                                     draggable=draggableMarker,
+                                                     flat=flat,
+                                                     visible=visible,
+                                                     map=map,
+                                                     icon=iconMarker[i],
+                                                     zIndex=zIndex),'\n',sep="")),
+                    pointsName,'.push(marker); \n',sep="",collapse='\n')
       
       # Put all variables together
       var<-paste(var,var1)
       
+      ## If layerNameEnabled is FALSE, hide this map layer on load
+      functions <- paste(functions,
+                         ifelse(layerNameEnabled,'\n showO(','\n hideO('),
+                         pointsName,',"',boxname,'",',map,');',sep="")
       
-      functions<-paste(functions,'showO(',pointsName,',"',boxname,'",',map,');',sep="")
       
       if (!is.list(previousMap)) {
         endhtm<-paste('</script> \n </head> \n <body onload="initialize()"> \n 
@@ -269,8 +243,8 @@ mcGoogleMaps <-
       } else { endhtm<- previousMap$endhtm }
       
       if(control){
-        endhtm<- paste(endhtm,'<input type="checkbox" id="',boxname,
-                       '" onClick=\'boxclick(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName ,'<b> <hr/>',sep="")
+        endhtm<- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
+                       '" onClick=\'boxclick(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName ,'</b> </td> </tr> </table> \n',sep="")
       }
       
       
@@ -293,26 +267,55 @@ mcGoogleMaps <-
       var1=""
       k = 1:length(names(SP.ll@data))
       
-      att<- paste ( lapply(as.list(1:length(SP.ll@coords[,1])), function(i) paste(names(SP.ll@data)[k],':',sapply(k ,function(k) as.character(SP.ll@data[i,k])) ,'\\r',
-                                                                                  collapse="")  )   )
+      ## att is a character vector for marker Titles. Handle embedded single quotes
+      att <- paste(lapply(as.list(1:length(SP.ll@coords[,1])), 
+                          function(i) paste(names(SP.ll@data)[k],': ',
+                                            sapply(k ,function(k) as.character(SP.ll@data[i,k])), collapse="\\r", sep="")))
+      att <- gsub("'","\\\\'",att)
       
-      var1<- paste( sapply(as.list(1:length(SP.ll@coords[,1])), function(i) paste(var1,createMarker(SP.ll@coords[i,],
-                                                                                                    title=paste(att[i],sep=""),
-                                                                                                    clickable=clickable,
-                                                                                                    draggable=draggableMarker,
-                                                                                                    flat=flat,
-                                                                                                    map=map,
-                                                                                                    visible=visible,
-                                                                                                    icon=iconMarker[i],
-                                                                                                    zIndex=zIndex),'\n',sep="") 
-      )
-      ,pointsName,'.push(marker); \n',sep="",collapse='\n')
+      ## If funcSetMarkerTitleText argument is specified, call it to specify marker title text
+      if(is.function(funcSetMarkerTitleText)) {
+        attCustom <- funcSetMarkerTitleText(SP.ll)
+        ## Make sure that attCustom is a character vector of the same length as att
+        if(!is.character(attCustom) || length(attCustom) != length(att)) {
+          warning("funcSetMarkerTitleText function returned class of ",class(attCustom),", expected character vector of length ",length(att),". Using default text for marker titles")
+        } else {
+          ## Use custom values generated by funcSetInfoWindowText
+          att <- gsub("'","\\\\'",attCustom)
+        }
+      }
       
+      ## Generate code to create Markers
+      var1 <- paste(sapply(as.list(1:length(SP.ll@coords[,1])), 
+                           function(i) 
+                             paste(var1,createMarker(SP.ll@coords[i,],
+                                                     title=paste(att[i],sep=""),
+                                                     clickable=clickable,
+                                                     draggable=draggableMarker,
+                                                     flat=flat,
+                                                     map=map,
+                                                     visible=visible,
+                                                     icon=iconMarker[i],
+                                                     zIndex=zIndex),'\n',sep="")),
+                    pointsName,'.push(marker); \n',sep="",collapse='\n')
       
+      ## att is a character vector for infowindows. Handle embedded single quotes
+      att <- paste(lapply(as.list(1:length(SP.ll@coords[,1])), 
+                          function(i) paste(names(SP.ll@data)[k],': ',
+                                            sapply(k, function(k) as.character(SP.ll@data[i,k])), collapse=" <br>",sep="")))
+      att <- gsub("'","\\\\'",att)
       
-      att<- paste ( lapply(as.list(1:length(SP.ll@coords[,1])), function(i) paste(names(SP.ll@data)[k],':',sapply(k ,function(k) as.character(SP.ll@data[i,k]))
-                                                                                  ,'<br>', collapse="")  )   )
-      
+      ## If funcSetInfoWindowText argument is specified, call it to specify InfoWindow text
+      if(is.function(funcSetInfoWindowText)) {
+        attCustom <- funcSetInfoWindowText(SP.ll)
+        ## Make sure that attCustom is a character vector of the same length as att
+        if(!is.character(attCustom) || length(attCustom) != length(att)) {
+          warning("funcSetInfoWindowText function returned class of ",class(attCustom),", expected character vector of length ",length(att),". Using default text for InfoWindow")
+        } else {
+          ## Use custom values generated by funcSetInfoWindowText
+          att <- gsub("'","\\\\'",attCustom)
+        }
+      }
       
       var<-paste(var,var1)
       infW<-""
@@ -326,56 +329,53 @@ mcGoogleMaps <-
                                           disableAutoPan = InfoWindowControl$disableAutoPan,
                                           maxWidth=InfoWindowControl$maxWidth,
                                           pixelOffset=InfoWindowControl$pixelOffset,
-                                          zIndex=InfoWindowControl$zIndex
-        ),' \n')  )  ,collapse='\n' )                  
+                                          zIndex=InfoWindowControl$zIndex),' \n')),collapse='\n')                  
       
+      ## If layerNameEnabled is FALSE, hide this map layer on load
+      functions <- paste(functions,infW,
+                         ifelse(layerNameEnabled,'\n showO(','\n hideO('),
+                         pointsName,',"',boxname,'",',map,');',sep="")
       
-      
-      functions<-paste(functions,infW,'showO(',pointsName,',"',boxname,'",',map,');',sep="")
       
       if (!is.list(previousMap)) {
         endhtm<-paste('</script> \n </head> \n <body onload="initialize()"> \n  <div id="',mapCanvas,'"></div>  \n
                       \n <div id="cBoxes"> \n', sep='')              
       } else { endhtm<- previousMap$endhtm }
-      if(control){
-        endhtm<- paste(endhtm,'<input type="checkbox" id="',boxname,'" onClick=\'boxclick(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName ,'<b> <hr />',sep="")
-      }
-      if(legend){
-        divLegendImage<-tempfile("Legend")  
-        divLegendImage<-substr(divLegendImage, start=regexpr("Legend",divLegendImage),stop=nchar(divLegendImage))
-        legendboxname<-paste('box',divLegendImage,sep="")
-        cxx<-PolyCol(attribute,colPalette,at=at)
-        pp<-legendbar(cxx$brks,colPalette=cxx$col.uniq,legendName=divLegendImage, temp=temporary)
-        
-        endhtm<- paste(endhtm,' \n <table> <tr>  <td> <input type="checkbox"  checked="checked" id="'
-                       ,legendboxname,'" onClick=\'legendDisplay(this,"',
-                       divLegendImage,'");\' /> LEGEND </td> </tr>  <tr> <td>',
-                       attributeName,'</td> </tr>
-                       <tr> <td> <div style="display:block;" id="',
-                       divLegendImage,'"> <img src="',divLegendImage,
-                       '.png" alt="Legend" height="70%"> </div>
-                       </td> </tr> \n </table> \n  <hr> \n',sep="") 
-      }else{endhtm<- paste(endhtm, '</tr> \n </table> \n <hr>  \n')}
       
-      }else  {
-        message("SP object must be SpatialPoints class or SpatialPointsDataFrame !") }
+      if(control) {
+        endhtm<- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,'" onClick=\'boxclick(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName ,'</b> </td> </tr> </table> \n',sep="")
+        
+        if(legend) {
+          divLegendImage<-tempfile("Legend")  
+          divLegendImage<-substr(divLegendImage, start=regexpr("Legend",divLegendImage),stop=nchar(divLegendImage))
+          legendboxname<-paste('box',divLegendImage,sep="")
+          cxx<-PolyCol(attribute,colPalette,at=at)
+          pp<-legendbar(cxx$brks,colPalette=cxx$col.uniq,legendName=divLegendImage, temp=temporary)
+          
+          endhtm<- paste(endhtm,' \n <table> <tr>  <td> <input type="checkbox" checked="checked" id="'
+                         ,legendboxname,'" onClick=\'legendDisplay(this,"',
+                         divLegendImage,'");\' /> LEGEND </td> </tr> \n <tr> <td>',
+                         attributeName,'</td> </tr> \n <tr> <td> <div style="display:block;" id="',
+                         divLegendImage,'"> <img src="',divLegendImage,
+                         '.png" alt="Legend" height="70%"> </div> \n </td> </tr> </table> \n <hr> \n',sep="") 
+        } 
+      }
+    } else {
+      message("SP object must be SpatialPoints class or SpatialPointsDataFrame !") }
     
-    if (add==F){functions<- paste(functions," google.maps.event.addListener( " ,map,", 'rightclick', function(event) {
+    if (!add) {
+      functions<- paste(functions,"\n google.maps.event.addListener( " ,map,", 'rightclick', function(event) {
                                   var lat = event.latLng.lat();
                                   var lng = event.latLng.lng();
-                                  alert('Lat=' + lat + '; Lng=' + lng);}); " ,"var markerCluster = new MarkerClusterer(",map,"," ,pointsName,"  );"
-                                  ,
-                                  " \n }" )
-                endhtm<-paste(endhtm,'</div> \n </body>  \n  </html>')
-                write(starthtm, filename,append=F)
-                write(var, filename,append=TRUE)
-                write(functions, filename,append=TRUE)
-                write(endhtm, filename,append=TRUE)
-                if(openMap){browseURL(filename)}
+                                  alert('Lat=' + lat + '; Lng=' + lng);}); " ,"var markerCluster = new MarkerClusterer(",map,"," ,pointsName,"  );",
+                        " \n }" )
+      endhtm<-paste(endhtm,'</div> \n </body>  \n  </html>')
+      write(starthtm, filename,append=F)
+      write(var, filename,append=TRUE)
+      write(functions, filename,append=TRUE)
+      write(endhtm, filename,append=TRUE)
+      if(openMap){browseURL(filename)}
     }
     
-    
-    x <- list(starthtm=starthtm,var=var, functions=functions,endhtm=endhtm)
-    return(x)
-    
-    }
+    return(list(starthtm=starthtm,var=var, functions=functions,endhtm=endhtm))
+  }

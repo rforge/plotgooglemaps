@@ -18,4 +18,6 @@ export(bubbleGoogleMaps,
        stplotGoogleMaps,
        vectorsSP,
        stfdfGoogleMaps,
-       mcGoogleMaps)
+       mcGoogleMaps,
+       symbolGoogleMaps,
+       heatmapGoogleMaps)

@@ -1,5 +1,7 @@
-createMarker <-
+## 6/9/2015 DC: New function based upon createMarker for use with symbolGoogleMaps()
+createSymbol <-
   function(lonlat,
+           zcolData,                ## Controls symbol size, must be numeric or coerceable to numeric
            name="marker",
            title="Point" ,
            map="map",
@@ -8,8 +10,16 @@ createMarker <-
            flat=TRUE,
            visible=TRUE,
            zIndex="null",
-           icon="", ...) {
-    # ...  shape="" , icon="",shadow="",cursor=""
+           
+           symbolPath,
+           symbolFillColor,
+           symbolFillOpacity,
+           symbolScale,
+           strokeColor,
+           strokeWeight,
+           strokeOpacity,
+           
+           ...) {
     
     p1 <- paste(' position: new google.maps.LatLng(',lonlat[2],',',lonlat[1],'),\n',sep="")
     m1 <- paste(' map:',map,',\n',sep="")
@@ -18,10 +28,18 @@ createMarker <-
     d1 <- ifelse(draggable!=FALSE,' draggable: true,\n', ' draggable: false,\n')
     f1 <- ifelse(flat!=FALSE,' flat: true,\n', ' flat: false,\n')
     v1 <- ifelse(visible!=FALSE,' visible: true,\n', ' visible: false,\n')
-    i1 <- ifelse (icon=="","",paste(' icon: ','new google.maps.MarkerImage("',icon,'"), \n',sep=""))
+    
+    ## DCC 6/9/2015: icon: Provide JSON to symbol object
+    i1 <- paste(' icon: {path: ',symbolPath,
+                ',fillColor: "',symbolFillColor,
+                '",fillOpacity: ',symbolFillOpacity,
+                ',scale: ',ifelse(is.na(symbolScale),0,symbolScale),
+                ',strokeColor: "',strokeColor,
+                '",strokeWeight: ',strokeWeight,
+                ',strokeOpacity: ',strokeOpacity,'}, \n',sep="")
     
     x<-paste('var ',name,'= new google.maps.Marker({ \n',p1,m1,t1,c1,d1,f1,v1,i1,
-             ' zIndex:',zIndex,sep="")
+             'zIndex:',ifelse(is.na(zIndex),0,zIndex),sep="")
     
     argsList <- list(...)
     vectorNames<-names(argsList)

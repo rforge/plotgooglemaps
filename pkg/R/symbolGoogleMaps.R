@@ -296,7 +296,7 @@ overflow:auto} \n', sep='')
       
       if(control) {
         endhtm <- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
-                        '" onClick=\'boxclick(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName ,'<b> </td> </tr> </table>',sep="")
+                        '" onClick=\'boxclick(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName ,'</b> </td> </tr> </table>',sep="")
       }
 
     }
@@ -305,9 +305,7 @@ overflow:auto} \n', sep='')
     else {
       message("SP object must be SpatialPointsDataFrame class!") 
     }
-    
-    
-    
+
     if(!add) {
       functions<- paste(functions,"\n google.maps.event.addListener( " ,map,", 'rightclick', function(event) {
     var lat = event.latLng.lat();

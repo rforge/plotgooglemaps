@@ -359,7 +359,7 @@ overflow:auto} \n', sep='')
       endhtm<- paste(endhtm,'<table border="0"> \n <tr> \n  <td> 
                                  <input type="checkbox" id="',boxname,'" 
                                  onClick=\'boxclick(this,',polyName,',"',boxname,
-                     '",',map,');\' /> <b> ', layerName,'<b> </td> </tr> \n',sep="")
+                     '",',map,');\' /> <b> ', layerName,'</b> </td> </tr> \n',sep="")
             
       ## Show Opacity and Line Weight controls in legend?
       if(legendOpacityWeightEnabled) {
@@ -391,7 +391,7 @@ overflow:auto} \n', sep='')
                      '.png" alt="Legend" height="70%"> </div>
                            </td> </tr> \n </table> \n  <hr> \n',sep="") 
     } else { 
-      endhtm<- paste(endhtm, '</tr> \n </table> \n <hr>  \n') 
+      endhtm<- paste(endhtm, '</table> \n <hr>  \n') 
     }
     
     if (!add) {

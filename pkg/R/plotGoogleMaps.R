@@ -587,8 +587,9 @@ overflow:auto} \n', sep='')
                        divLegendImage,'"> <img src="',divLegendImage,
                        '.png" alt="Legend" height="70%"> </div>
                            </td> </tr> \n </table> \n   <hr> \n',sep="") 
-      } else{endhtm<- paste(endhtm, '\n </table> \n ',sep="")}
-      
+      } else {
+        endhtm<- paste(endhtm, '\n </table> \n ',sep="")
+      }
       
     }
     else if   (class(SP)[1]=="SpatialPolygons")             {
@@ -667,8 +668,9 @@ overflow:auto} \n', sep='')
                          textnameW,'" value="1" onChange=\'setLineWeight(',
                          polyName,',"',textnameW,'")\' size=3 /> Line weight
                                (pixels) </td> </tr> </table>\n',sep="")
-        } else 
+        } else {
           endhtm<- paste(endhtm,'</table> \n',sep="")
+        }
       }
     }
     

@@ -278,7 +278,7 @@ height:auto; }
       endhtm<- paste(endhtm,'<table border="0"> <tr> <td> 
                                  <input type="checkbox" id="',boxname,'" 
                  onClick=\'boxclick(this,',polyName,',"',boxname,
-                     '");\' /> <b> ', layerName,'<b> </td> </tr> \n',sep="")
+                     '");\' /> <b> ', layerName,'</b> </td> </tr> \n',sep="")
       
       ## Show Opacity and Line Weight controls in legend?
       if(legendOpacityWeightEnabled) {

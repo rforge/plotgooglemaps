@@ -25,6 +25,7 @@ symbolGoogleMaps(SP,
                  map.height = "100\%",
                  layerName = "",
                  layerNameEnabled = TRUE,
+                 layerGroupName = FALSE,
                  control.width = "100\%",
                  control.height = "100\%",
                  zoom = 15, 
@@ -84,6 +85,7 @@ symbolGoogleMaps(SP,
   \item{layerName}{the name of the layer. Layer name appears on the check box for
                      switching layer of and on in output htm.}
   \item{layerNameEnabled}{controls whether the layer is enabled (shown) when the map is loaded. Default is TRUE}
+  \item{layerGroupName}{character string to show above control in legend. Useful for identifying groups of map layers. Default is FALSE to indicate no grouping text to display}
   \item{control.width}{the width of the part of htm for controlling layer  (legend, opacity,...)
                            Can be in percent or in pixels (px).}
   \item{control.height}{the height of the part of htm for controlling layer  (legend, opacity,...)

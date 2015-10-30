@@ -1,8 +1,8 @@
 Package: plotGoogleMaps
 Type: Package
 Title: Plot Spatial or Spatio-Temporal Data Over Google Maps
-Version: 2.3
-Date: 2015-07-14
+Version: 2.4
+Date: 2015-10-27
 Author: Milan Kilibarda
 Maintainer: Milan Kilibarda <kili@grf.bg.ac.rs>
 Description: Provides an interactive plot device for handling the geographic data for web browsers, designed for the automatic creation of web maps as a combination of users' data and Google Maps layers. 

@@ -15,6 +15,7 @@ heatmapGoogleMaps <-
            map.height="100%",
            layerName="",
            layerNameEnabled=TRUE,
+           layerGroupName=FALSE,
            control.width="100%",
            control.height="100%",
            zoom=15,
@@ -54,41 +55,45 @@ heatmapGoogleMaps <-
       warning("layerNameEnabled must be TRUE to show map layer on map load or FALSE to hide map layer. Using default of TRUE")
       layerNameEnabled <- TRUE
     }    
+    if(is.logical(layerGroupName) && layerGroupName || !is.logical(layerGroupName) && !is.character(layerGroupName)) {
+      warning("layerGroupName must be FALSE or a character string to use as the group name for this layer")
+    }
     
-    nameOfSP<-sapply(as.list(substitute({SP})[-1]), deparse)
-    nameOfSP<-gsub("\\s","", nameOfSP)
-    nameOfSP<-gsub('[!,",#,$,%,&,(,),*,+,-,.,/,:,;,<,=,>,?,@,_,^,`,|,~]', "x", nameOfSP)
-    nameOfSP<-gsub('[[]', "X", nameOfSP)
-    nameOfSP<-gsub('[]]', "X", nameOfSP)
-    temporary = FALSE 
+    nameOfSP <- sapply(as.list(substitute({SP})[-1]), deparse)
+    nameOfSP <- gsub("\\s","", nameOfSP)
+    nameOfSP <- gsub('[!,",#,$,%,&,(,),*,+,-,.,/,:,;,<,=,>,?,@,_,^,`,|,~]', "x", nameOfSP)
+    nameOfSP <- gsub('[[]', "X", nameOfSP)
+    nameOfSP <- gsub('[]]', "X", nameOfSP)
+    temporary <- FALSE 
     
     ## 6/26/2015: Only use temporary folder (vs. current working directory) if filename is "" AND add is FALSE
     if(filename=="" && !add){
       filename <- tempfile("map", fileext = c(".html"))
-      temporary = TRUE
+      temporary <- TRUE
     }
     
     ## Convert projection to WGS84
     SP.ll <- spTransform(SP, CRS("+proj=longlat +datum=WGS84"))
     
-    disableDefaultUI=FALSE
-    Centar=c(mean(SP.ll@bbox[1,]),mean(SP.ll@bbox[2,]))
-    sw<-c(SP.ll@bbox[2,1],SP.ll@bbox[1,1])
-    ne<-c(SP.ll@bbox[2,2],SP.ll@bbox[1,2])
-    if(any('data'==slotNames(SP)) ){
+    disableDefaultUI <- FALSE
+    Centar <- c(mean(SP.ll@bbox[1,]),mean(SP.ll@bbox[2,]))
+    sw <- c(SP.ll@bbox[2,1],SP.ll@bbox[1,1])
+    ne <- c(SP.ll@bbox[2,2],SP.ll@bbox[1,2])
+    if(any('data'==slotNames(SP)) ) {
       attribute=SP@data[,zcol] 
       for(i in 1:length(SP.ll@data)) {
-        if( identical(attribute,SP.ll@data[,i])){
-          attributeName<-names(SP.ll@data)[i]  }
+        if( identical(attribute,SP.ll@data[,i])) {
+          attributeName <- names(SP.ll@data)[i]  
+        }
       }
     }
     
     if(layerName=="") {
-      layerName=nameOfSP
+      layerName <- nameOfSP
     }
     
     if(!is.list(previousMap)) {
-      functions<-""
+      functions <- ""
       # Creating functions for checkbox control, Show , Hide and Toggle control
       # Set of JavaScript functionalities
       funs <- createMapFunctions()
@@ -114,9 +119,12 @@ heatmapGoogleMaps <-
                                    scrollwheel=scrollwheel,
                                    streetViewControl= streetViewControl)
       # Put all functions together
-      functions<-paste( functions,init, sep="")  }else{ functions<- previousMap$functions}
+      functions <- paste( functions,init, sep="")  
+    } else { 
+      functions <- previousMap$functions
+    }
     
-    fjs=""
+    fjs <- ""
     
     # fjs<-paste(fjs,'\n USGSOverlay.prototype = new google.maps.OverlayView(); \n',sep="")
     # fjs<-paste(fjs,'function USGSOverlay(bounds, image, map) {\n      this.bounds_ = bounds;\n      this.image_ = image;\n      this.map_ = map;\n      this.div_ = null;\n      this.setMap(map); }\n',sep="")
@@ -128,28 +136,22 @@ heatmapGoogleMaps <-
     # fjs<-paste(fjs,'USGSOverlay.prototype.toggle = function() { \n if (this.div_) { \n  if (this.div_.style.visibility == "hidden") {  \n   this.show(); \n  } else { \n  this.hide(); } } } \n' ,sep="")
     # fjs<-paste(fjs,'USGSOverlay.prototype.toggleDOM = function() {\n          if (this.getMap()) {\n            this.setMap(null);\n          } else {\n            this.setMap(this.map_);}}\n' ,sep="")
     
-    if(map.width!=control.width & css==""){
-      css= paste('\n #',mapCanvas,' { float: left;
- width:', map.width,';
- height:' , map.height,'; }
-\n #cBoxes {float: left;
-width:', control.width,';
-height: ', control.height,';
-overflow:auto} \n', sep='') 
+    if(map.width!=control.width & css=="") {
+      css= paste('\n #',mapCanvas,' { float: left; width:', map.width,'; height:' , map.height,'; }',
+                 '\n #cBoxes {float: left; width:', control.width,';height: ', control.height,';overflow:auto} \n', sep='') 
     } else if(css=="") {
-      css=paste(' #',mapCanvas,' {min-height: 100%;height:auto; } \n #cBoxes {position:absolute;right:5px; top:50px; background:white}',sep='')
+      css <- paste(' #',mapCanvas,' {min-height: 100%;height:auto; } \n #cBoxes {position:absolute;right:5px; top:50px; background:white}',sep='')
     }
     
-    starthtm=paste('<!DOCTYPE html> \n <html> \n <head> \n <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
- <meta charset="utf-8"> \n <style type="text/css">  \n html { height: 100% ; font-size: small} \n body { height: 100%; margin: 0px; padding: 0px }
-',css,'
-</style> \n
- <script type="text/javascript" src="',api,'"> </script>  \n
- <script language="javascript"> \n ',sep='')
-    starthtm<-paste(starthtm, fjs)
+    starthtm <- paste('<!DOCTYPE html> \n <html> \n <head> \n <meta name="viewport" content="initial-scale=1.0, user-scalable=no" /> ',
+                      '<meta charset="utf-8"> \n <style type="text/css">  \n html { height: 100% ; font-size: small} \n body { height: 100%; margin: 0px; padding: 0px }',css,
+                      '</style> \n ',
+                      '<script type="text/javascript" src="',api,'"> </script>  \n ',
+                      '<script language="javascript"> \n ',sep='')
+    starthtm <- paste(starthtm, fjs)
     
     ################################################################################
-    randNum = sample(1:10000, 1)
+    randNum <- sample(1:10000, 1)
     
     if(class(SP)[1]=="SpatialPoints") {
       
@@ -158,12 +160,12 @@ overflow:auto} \n', sep='')
       boxname<-paste(pointsName,'box',sep="")
       
       if(!is.list(previousMap)) {
-        var<-""
+        var <- ""
         # Declare variables in JavaScript marker and map
-        var<-paste(' var marker \n var ',map,' \n',sep="")
+        var <- paste(' var marker \n var ',map,' \n',sep="")
         # Create all markers and store them in markersArray - PointsName
       } else {
-        var<-previousMap$var
+        var <- previousMap$var
       }
       
       ## Define data array for heatmap
@@ -201,9 +203,14 @@ overflow:auto} \n', sep='')
         endhtm <- previousMap$endhtm 
       }
       
-      if(control){
-        endhtm<- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
-                       '" onClick=\'boxclickHeatmap(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName ,'</b> </td> </tr> </table> ',sep="")
+      if(control) {
+        if(is.character(layerGroupName)) {
+          endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <b>',
+                          paste(layerGroupName,collapse = " <br> "),'</b> </td> </tr> </table> \n',sep="")
+        }
+        
+        endhtm <- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
+                       '" onClick=\'boxclickHeatmap(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName,'</b> </td> </tr> </table> ',sep="")
       }
       
     } else if(class(SP)[1]=="SpatialPointsDataFrame") {
@@ -211,18 +218,20 @@ overflow:auto} \n', sep='')
       ##############################################################################################
       ## Handle SpatialPointsDataFrame
       ##############################################################################################
-      pointsName<-paste('markers',nameOfSP,randNum, sep="")
+      pointsName <- paste('markers',nameOfSP,randNum, sep="")
       # Create check box name for checkbox control
-      boxname<-paste(pointsName,'box',sep="")
-      att<-rep(NA,.5*length(slot(SP.ll,"coords")))
-      att1=""
+      boxname <- paste(pointsName,'box',sep="")
+      att <- rep(NA,.5*length(slot(SP.ll,"coords")))
+      att1 <- ""
       
       if(!is.list(previousMap)) {
-        var<-""
+        var <- ""
         # Declare variables in JavaScript marker and map
-        var<-paste(" var marker \n var ",map," \n",sep="")
+        var <- paste(" var marker \n var ",map," \n",sep="")
         # Create all markers and store them in markersArray - PointsName
-      }else{ var<-previousMap$var}
+      } else { 
+        var <- previousMap$var
+      }
       
       ## Start heatmap array definition
       var <- paste(var,"\nvar ",pointsName,"Data = [ \n",sep="")
@@ -239,7 +248,7 @@ overflow:auto} \n', sep='')
                                                    SP.ll@coords[i,1],")",
                                                    sep=""))
                                     } else if(is.na(SP.ll@data[i,weightedColumn]) ||
-                                                (excludeZeroWeights && SP.ll@data[i,weightedColumn]==0)) {
+                                              (excludeZeroWeights && SP.ll@data[i,weightedColumn]==0)) {
                                       return(character())
                                     } else {
                                       return(paste("{location: new google.maps.LatLng(",
@@ -268,28 +277,34 @@ overflow:auto} \n', sep='')
                          pointsName,',"',boxname,'",',map,');',sep="")
       
       if(!is.list(previousMap)) {
-        endhtm<-paste('</script> \n </head> \n <body onload="initialize()"> \n  <div id="',mapCanvas,'"></div>  \n
+        endhtm <- paste('</script> \n </head> \n <body onload="initialize()"> \n  <div id="',mapCanvas,'"></div>  \n
                            \n <div id="cBoxes"> \n', sep='')              
-      } else { endhtm<- previousMap$endhtm }
+      } else { 
+        endhtm <- previousMap$endhtm 
+      }
       
       if(control) {
-        endhtm<- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
-                       '" onClick=\'boxclickHeatmap(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName ,'</b> </td> </tr> </table> ',sep="")
+        if(is.character(layerGroupName)) {
+          endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <b>',
+                          paste(layerGroupName,collapse = " <br> "),'</b> </td> </tr> </table> \n',sep="")
+        }
+        
+        endhtm <- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
+                        '" onClick=\'boxclickHeatmap(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName ,'</b> </td> </tr> </table> ',sep="")
       }
       
     }
     else  {
-      message("SP object must be Spatial class!") }
-    
-    
+      message("SP object must be Spatial class!") 
+    }
     
     if(!add) {
-      functions<- paste(functions,"\n google.maps.event.addListener( " ,map,", 'rightclick', function(event) {
-    var lat = event.latLng.lat();
-    var lng = event.latLng.lng();
-    alert('Lat=' + lat + '; Lng=' + lng);}); " , " \n }" )
+      functions <- paste(functions,"\n google.maps.event.addListener( " ,map,", 'rightclick', function(event) {",
+                         "var lat = event.latLng.lat();",
+                         "var lng = event.latLng.lng();",
+                         "alert('Lat=' + lat + '; Lng=' + lng);}); " , " \n }")
       
-      endhtm<-paste(endhtm,'</div> \n </body>  \n  </html>')
+      endhtm <- paste(endhtm,'</div> \n </body>  \n  </html>')
       write(starthtm, filename,append=F)
       write(var, filename,append=TRUE)
       write(functions, filename,append=TRUE)
@@ -298,5 +313,4 @@ overflow:auto} \n', sep='')
     }
     
     return(list(starthtm=starthtm,var=var,functions=functions,endhtm=endhtm))
-    
   }

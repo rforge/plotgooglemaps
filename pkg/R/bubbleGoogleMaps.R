@@ -20,6 +20,7 @@ bubbleGoogleMaps <-
            map.height="100%",
            layerName="",
            layerNameEnabled=TRUE,
+           layerGroupName=FALSE,
            control.width="100%",
            control.height="100%",
            zoom=15,
@@ -66,6 +67,9 @@ bubbleGoogleMaps <-
     if(!is.null(funcSetInfoWindowText) && !is.function(funcSetInfoWindowText)) {
       warning("funcSetInfoWindowText must be NULL or a function that accepts a sp object and returns a character vector of InfoWindow marker strings. Using defaults.")
       funcSetInfoWindowText <- NULL
+    }
+    if(is.logical(layerGroupName) && layerGroupName || !is.logical(layerGroupName) && !is.character(layerGroupName)) {
+      warning("layerGroupName must be FALSE or a character string to use as the group name for this layer")
     }
     
     disableDefaultUI=FALSE
@@ -257,7 +261,7 @@ bubbleGoogleMaps <-
         att <- gsub("'","\\\\'",attCustom)
       }
     }
-     
+    
     # Put all variables together
     var<-paste(var,var1)
     if (!is.list(previousMap)) {
@@ -288,7 +292,7 @@ bubbleGoogleMaps <-
                                   streetViewControl= streetViewControl)
       # Put all functions together
       functions<-paste(functions,init, sep="")  
-    
+      
     } else { 
       functions<- previousMap$functions
     }
@@ -312,7 +316,7 @@ bubbleGoogleMaps <-
     ## If layerNameEnabled is FALSE, hide this map layer on load
     functions <- paste(functions,infW,
                        ifelse(layerNameEnabled,'\n showO(','\n hideO('),
-                              polyName,',"',boxname,'",',map,');',sep="")
+                       polyName,',"',boxname,'",',map,');',sep="")
     
     
     fjs=""
@@ -356,18 +360,21 @@ overflow:auto} \n', sep='')
     } else { endhtm<- previousMap$endhtm }
     
     if(control){
-      endhtm<- paste(endhtm,'<table border="0"> \n <tr> \n  <td> 
-                                 <input type="checkbox" id="',boxname,'" 
-                                 onClick=\'boxclick(this,',polyName,',"',boxname,
-                     '",',map,');\' /> <b> ', layerName,'</b> </td> </tr> \n',sep="")
-            
+      if(is.character(layerGroupName)) {
+        endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <b>',
+                        paste(layerGroupName,collapse = " <br> "),'</b> </td> </tr> </table> \n',sep="")
+      }
+      
+      endhtm <- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
+                      '" onClick=\'boxclick(this,',polyName,',"',boxname,'",',map,');\' /> <b>', layerName,'</b> </td> </tr> \n',sep="")
+      
       ## Show Opacity and Line Weight controls in legend?
       if(legendOpacityWeightEnabled) {
-        endhtm<- paste(endhtm,' \n <tr> <td> \n <input type="text" id="',
-                       textname,'" value="50" onChange=\'setOpac(',
-                       polyName,',"',textname,'")\' size=3 /> 
+        endhtm <- paste(endhtm,' \n <tr> <td> \n <input type="text" id="',
+                        textname,'" value="50" onChange=\'setOpac(',
+                        polyName,',"',textname,'")\' size=3 /> 
                                  Opacity (0-100 %) </td> </tr> \n',sep="")
-        endhtm<- paste(endhtm,' \n <tr>  <td> \n <input type="text" 
+        endhtm <- paste(endhtm,' \n <tr>  <td> \n <input type="text" 
                                  id="',textnameW,'" value="1" onChange=\'
                                  setLineWeight(',polyName,',"',textnameW,'")\' 
                                  size=3 /> Line weight (pixels) </td> </tr> \n ',sep="")
@@ -382,16 +389,16 @@ overflow:auto} \n', sep='')
                          scale.level = scale.level, strokeColor = strokeColor, 
                          temp = temporary , dirname=dirname(filename) ) 
       
-      endhtm<- paste(endhtm,' \n <tr>  <td> <input type="checkbox"  checked="checked" id="'
-                     ,legendboxname,'" onClick=\'legendDisplay(this,"',
-                     divLegendImage,'");\' /> LEGEND </td> </tr>  <tr> <td>',
-                     attributeName,'</td> </tr>
+      endhtm <- paste(endhtm,' \n <tr>  <td> <input type="checkbox"  checked="checked" id="'
+                      ,legendboxname,'" onClick=\'legendDisplay(this,"',
+                      divLegendImage,'");\' /> LEGEND </td> </tr>  <tr> <td>',
+                      attributeName,'</td> </tr>
                                     <tr> <td> <div style="display:block;" id="',
-                     divLegendImage,'"> <img src="',divLegendImage,
-                     '.png" alt="Legend" height="70%"> </div>
+                      divLegendImage,'"> <img src="',divLegendImage,
+                      '.png" alt="Legend" height="70%"> </div>
                            </td> </tr> \n </table> \n  <hr> \n',sep="") 
     } else { 
-      endhtm<- paste(endhtm, '</table> \n <hr>  \n') 
+      endhtm <- paste(endhtm, '</table> \n <hr>  \n') 
     }
     
     if (!add) {
@@ -400,7 +407,7 @@ overflow:auto} \n', sep='')
     var lng = event.latLng.lng();
                               alert('Lat=' + lat + '; Lng=' + lng);}); " , " \n }" )
       
-      endhtm<-paste(endhtm,'</div> \n </body>  \n  </html>')
+      endhtm <- paste(endhtm,'</div> \n </body>  \n  </html>')
       write(starthtm, filename,append=F)
       write(var, filename,append=TRUE)
       write(functions, filename,append=TRUE)

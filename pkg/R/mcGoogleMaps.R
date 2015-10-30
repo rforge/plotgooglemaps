@@ -17,6 +17,7 @@ mcGoogleMaps <-
            map.height="100%",
            layerName="",
            layerNameEnabled=TRUE,
+           layerGroupName=FALSE,
            control.width="100%",
            control.height="100%",
            zoom=15,
@@ -60,12 +61,15 @@ mcGoogleMaps <-
       warning("funcSetMarkerTitleText must be NULL or a function that accepts a sp object and returns a character vector of marker title strings. Using defaults.")
       funcSetMarkerTitleText <- NULL
     }
+    if(is.logical(layerGroupName) && layerGroupName || !is.logical(layerGroupName) && !is.character(layerGroupName)) {
+      warning("layerGroupName must be FALSE or a character string to use as the group name for this layer")
+    }
     
-    nameOfSP<-sapply(as.list(substitute({SP})[-1]), deparse)
-    nameOfSP<-gsub("\\s","", nameOfSP)
-    nameOfSP<-gsub('[!,",#,$,%,&,(,),*,+,-,.,/,:,;,<,=,>,?,@,_,^,`,|,~]', "x", nameOfSP)
-    nameOfSP<-gsub('[[]', "X", nameOfSP)
-    nameOfSP<-gsub('[]]', "X", nameOfSP)
+    nameOfSP <- sapply(as.list(substitute({SP})[-1]), deparse)
+    nameOfSP <-  gsub("\\s","", nameOfSP)
+    nameOfSP <- gsub('[!,",#,$,%,&,(,),*,+,-,.,/,:,;,<,=,>,?,@,_,^,`,|,~]', "x", nameOfSP)
+    nameOfSP <- gsub('[[]', "X", nameOfSP)
+    nameOfSP <- gsub('[]]', "X", nameOfSP)
     temporary = FALSE 
     ## 6/26/2015: Only use temporary folder (vs. current working directory) if filename is "" AND add is FALSE
     if(filename=="" && !add){
@@ -178,9 +182,9 @@ mcGoogleMaps <-
                  width:', control.width,';
                  height: ', control.height,';
                  overflow:auto} \n', sep='') 
-      }else if (css==""){
-        css=paste(' #',mapCanvas,' {min-height: 100%;height:auto; } \n #cBoxes {position:absolute;right:5px; top:50px; background:white}',sep='')
-        }
+    }else if (css==""){
+      css=paste(' #',mapCanvas,' {min-height: 100%;height:auto; } \n #cBoxes {position:absolute;right:5px; top:50px; background:white}',sep='')
+    }
     
     
     starthtm=paste('<!DOCTYPE html> \n <html> \n <head> \n <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
@@ -197,21 +201,22 @@ mcGoogleMaps <-
     
     if (class(SP)[1]=="SpatialPoints"){
       
-      pointsName<-paste('markers',nameOfSP,randNum, sep="")
+      pointsName <- paste('markers',nameOfSP,randNum, sep="")
       # Create chechk box name for checkbox control
-      boxname<-paste(pointsName,'box',sep="")
+      boxname <- paste(pointsName,'box',sep="")
       
       
       if (!is.list(previousMap)) {
-        var<-""
+        var <- ""
         # Declare variables in JavaScript marker and map
-        var<-paste(' var marker \n var ', map,' \n')
+        var <- paste(' var marker \n var ', map,' \n')
         # Create all markers and store them in markersArray - PointsName
-      }else{ var<-previousMap$var}
+      } else { 
+        var <- previousMap$var
+      }
       
-      var<-paste(var,'var ',pointsName,'=[]; \n')
-      var1=""
-      
+      var <- paste(var,'var ',pointsName,'=[]; \n')
+      var1 <- ""
       
       var1 <- paste(sapply(as.list(1:length(SP.ll@coords[,1])), 
                            function(i) 
@@ -243,29 +248,33 @@ mcGoogleMaps <-
       } else { endhtm<- previousMap$endhtm }
       
       if(control){
-        endhtm<- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
-                       '" onClick=\'boxclick(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName ,'</b> </td> </tr> </table> \n',sep="")
+        if(is.character(layerGroupName)) {
+          endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <b>',
+                          paste(layerGroupName,collapse = " <br> "),'</b> </td> </tr> </table> \n',sep="")
+        }
+        
+        endhtm <- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
+                        '" onClick=\'boxclick(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName,'</b> </td> </tr> </table> \n',sep="")
       }
       
-      
-      }
-    else if   (class(SP)[1]=="SpatialPointsDataFrame") {
-      pointsName<-paste('markers',nameOfSP,randNum, sep="")
+    } else if(class(SP)[1]=="SpatialPointsDataFrame") {
+      pointsName <- paste('markers',nameOfSP,randNum, sep="")
       # Create chechk box name for checkbox control
-      boxname<-paste(pointsName,'box',sep="")
-      att<-rep(NA,.5*length(slot(SP.ll,"coords")))
-      att1=""
-      
+      boxname <- paste(pointsName,'box',sep="")
+      att <- rep(NA,.5*length(slot(SP.ll,"coords")))
+      att1 <- ""
       
       if (!is.list(previousMap)) {
-        var<-""
+        var <- ""
         # Declare variables in JavaScript marker and map
-        var<-paste(' var marker \n var ',map,' \n')
+        var <- paste(' var marker \n var ',map,' \n')
         # Create all markers and store them in markersArray - PointsName
-      }else{ var<-previousMap$var}
-      var<-paste(var,'var ',pointsName,'=[] ;')
-      var1=""
-      k = 1:length(names(SP.ll@data))
+      } else { 
+        var <- previousMap$var
+      }
+      var <- paste(var,'var ',pointsName,'=[] ;')
+      var1 <- ""
+      k <- 1:length(names(SP.ll@data))
       
       ## att is a character vector for marker Titles. Handle embedded single quotes
       att <- paste(lapply(as.list(1:length(SP.ll@coords[,1])), 
@@ -317,10 +326,10 @@ mcGoogleMaps <-
         }
       }
       
-      var<-paste(var,var1)
-      infW<-""
+      var <- paste(var,var1)
+      infW <- ""
       
-      infW<- paste ( lapply(as.list(1:length(SP.ll@coords[,1])), function(i) 
+      infW <- paste ( lapply(as.list(1:length(SP.ll@coords[,1])), function(i) 
         paste(infW,createInfoWindowEventM(Marker=paste(pointsName,'[',i-1,'] ',sep=""),
                                           content=att[i],
                                           map=InfoWindowControl$map,
@@ -343,33 +352,40 @@ mcGoogleMaps <-
       } else { endhtm<- previousMap$endhtm }
       
       if(control) {
-        endhtm<- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,'" onClick=\'boxclick(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName ,'</b> </td> </tr> </table> \n',sep="")
+        if(is.character(layerGroupName)) {
+          endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <b>',
+                          paste(layerGroupName,collapse = " <br> "),'</b> </td> </tr> </table> \n',sep="")
+        }
+        
+        endhtm <- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
+                        '" onClick=\'boxclick(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName,'</b> </td> </tr> </table> \n',sep="")
         
         if(legend) {
-          divLegendImage<-tempfile("Legend")  
-          divLegendImage<-substr(divLegendImage, start=regexpr("Legend",divLegendImage),stop=nchar(divLegendImage))
-          legendboxname<-paste('box',divLegendImage,sep="")
-          cxx<-PolyCol(attribute,colPalette,at=at)
-          pp<-legendbar(cxx$brks,colPalette=cxx$col.uniq,legendName=divLegendImage, temp=temporary)
+          divLegendImage <- tempfile("Legend")  
+          divLegendImage <- substr(divLegendImage, start=regexpr("Legend",divLegendImage),stop=nchar(divLegendImage))
+          legendboxname <- paste('box',divLegendImage,sep="")
+          cxx <- PolyCol(attribute,colPalette,at=at)
+          pp <- legendbar(cxx$brks,colPalette=cxx$col.uniq,legendName=divLegendImage, temp=temporary)
           
-          endhtm<- paste(endhtm,' \n <table> <tr>  <td> <input type="checkbox" checked="checked" id="'
-                         ,legendboxname,'" onClick=\'legendDisplay(this,"',
-                         divLegendImage,'");\' /> LEGEND </td> </tr> \n <tr> <td>',
-                         attributeName,'</td> </tr> \n <tr> <td> <div style="display:block;" id="',
-                         divLegendImage,'"> <img src="',divLegendImage,
-                         '.png" alt="Legend" height="70%"> </div> \n </td> </tr> </table> \n <hr> \n',sep="") 
+          endhtm <- paste(endhtm,' \n <table> <tr>  <td> <input type="checkbox" checked="checked" id="'
+                          ,legendboxname,'" onClick=\'legendDisplay(this,"',
+                          divLegendImage,'");\' /> LEGEND </td> </tr> \n <tr> <td>',
+                          attributeName,'</td> </tr> \n <tr> <td> <div style="display:block;" id="',
+                          divLegendImage,'"> <img src="',divLegendImage,
+                          '.png" alt="Legend" height="70%"> </div> \n </td> </tr> </table> \n <hr> \n',sep="") 
         } 
       }
     } else {
-      message("SP object must be SpatialPoints class or SpatialPointsDataFrame !") }
+      message("SP object must be SpatialPoints class or SpatialPointsDataFrame !") 
+    }
     
     if (!add) {
-      functions<- paste(functions,"\n google.maps.event.addListener( " ,map,", 'rightclick', function(event) {
+      functions <- paste(functions,"\n google.maps.event.addListener( " ,map,", 'rightclick', function(event) {
                                   var lat = event.latLng.lat();
                                   var lng = event.latLng.lng();
                                   alert('Lat=' + lat + '; Lng=' + lng);}); " ,"var markerCluster = new MarkerClusterer(",map,"," ,pointsName,"  );",
-                        " \n }" )
-      endhtm<-paste(endhtm,'</div> \n </body>  \n  </html>')
+                         " \n }" )
+      endhtm <- paste(endhtm,'</div> \n </body>  \n  </html>')
       write(starthtm, filename,append=F)
       write(var, filename,append=TRUE)
       write(functions, filename,append=TRUE)

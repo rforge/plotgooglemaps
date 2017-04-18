@@ -52,6 +52,12 @@ symbolGoogleMaps(SP,
                  css = "",                                     
                  api = "https://maps.googleapis.com/maps/api/js?libraries=visualization",
                  openMap = TRUE,
+                 trafficLayerEnabled = NULL,
+                 trafficLayerName = "Traffic",
+                 transitLayerEnabled = NULL,
+                 transitLayerName = "Transit",
+                 bicycleLayerEnabled = NULL,
+                 bicycleLayerName = "Bicycle",
                  ...) }
 \arguments{
   \item{SP}{object of \link[sp]{Spatial-class} with
@@ -66,14 +72,14 @@ symbolGoogleMaps(SP,
   \item{previousMap}{previously saved variable from plotGoogleMaps or bubbleGoogleMaps when attribute add is TRUE.
                      It is solution for combining more than one layers in the one plot.}
 
-  \item{symbolPath}{Google Maps symbol path. Default is google.maps.SymbolPath.CIRCLE}
+  \item{symbolPath}{Google Maps symbol path. Default is google.maps.SymbolPath.CIRCLE. If 1 value is specified, it is used for all data points. Can also specify a vector of different symbol paths, one for each point}
   \item{minScale}{Number of pixels to use for the minimum value in zcol}
   \item{zcolIndexBase}{Denominator used to normalize zcol values. Default is mean(sqrt(SP@data[,zcol]/pi)*2,na.rm = TRUE)}
-  \item{symbolFillColor}{Fill color for symbol interior. Default is 'red'}
-  \item{symbolFillOpacity}{Opacity of symbols. Range is 0-1, default is 0.7}
-  \item{strokeColor}{Stroke color for symbol outlines. Default is 'white'}
-  \item{strokeOpacity}{Stroke opacity for symbol outlines. Range is 0-1, default is 1}
-  \item{strokeWeight}{Stroke weight for symbol outlines. Default is 1}
+  \item{symbolFillColor}{Fill color for symbol interior. Default is 'red'. Can also supply a vector to specify a different color for each symbol}
+  \item{symbolFillOpacity}{Opacity of symbols. Range is 0-1, default is 0.7.  Can also supply a vector to specify a different opacity for each symbol}
+  \item{strokeColor}{Stroke color for symbol outlines. Default is 'white'. Can also supply a vector to specify a different stroke color for each symbol}
+  \item{strokeOpacity}{Stroke opacity for symbol outlines. Range is 0-1, default is 1. Can also supply a vector to specify a different opacity for each symbol}
+  \item{strokeWeight}{Stroke weight for symbol outlines. Default is 1. Can also supply a vector to specify a different stroke weight for each symbol}
   \item{clickable}{indicates whether this symbol (point) handles click events}
   \item{draggableMarker}{if TRUE, the symbol can be dragged}
   \item{flat}{if TRUE, the marker shadow will not be displayed}
@@ -124,7 +130,13 @@ symbolGoogleMaps(SP,
   \item{mapCanvas}{name of map DIV element}
   \item{css}{CSS for mapCanvas and cBoxes}
   \item{api}{see \url{https://developers.google.com/maps/documentation/javascript/tutorial}}
-  \item{openMap}{if TRUE map is browesed by default browser}
+  \item{openMap}{if TRUE map is opened by default browser}
+  \item{trafficLayerEnabled}{If TRUE, display current traffic conditions. If NULL (default), do not add traffic map layer (for backwards compatibility)}
+  \item{trafficLayerName}{Layer name to use for traffic layer in map legend. Default is "Traffic". Has no effect if trafficLayerEnabled is NULL}
+  \item{transitLayerEnabled}{If TRUE, display transit map layer. If NULL (default), do not add transit map layer (for backwards compatibility)}
+  \item{transitLayerName}{Layer name to use for transit layer in map legend. Default is "Transit". Has no effect if transitLayerEnabled is NULL}
+  \item{bicycleLayerEnabled}{If TRUE, display bicycle map layer. If NULL (default), do not add bicycle map layer (for backwards compatibility)}
+  \item{bicycleLayerName}{Layer name to use for bicycle layer in map legend. Default is "Bicycle". Has no effect if bicycleLayerEnabled is NULL}
   \item{...}{optional arguments}
 }
 \value{This function returns a list with HTML, JavaScript, Google Maps API key and

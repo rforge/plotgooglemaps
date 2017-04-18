@@ -51,6 +51,12 @@ symbolGoogleMaps <-
            css = "",
            api="https://maps.googleapis.com/maps/api/js?libraries=visualization",
            openMap= TRUE,
+           trafficLayerEnabled = NULL,
+           trafficLayerName = "Traffic",
+           transitLayerEnabled = NULL,
+           transitLayerName = "Transit",
+           bicycleLayerEnabled = NULL,
+           bicycleLayerName = "Bicycle",
            ...) {
     
     ###############################################################################
@@ -100,6 +106,11 @@ symbolGoogleMaps <-
       SP.ll <- SP
     } else {
       SP.ll <- spTransform(SP, CRS("+proj=longlat +datum=WGS84"))
+      ## If SP was already in the required projection, use the original SP to preserve @bbox settings
+      ## spTranform() will reset @bbox to show entire object
+      if(identicalCRS(SP,SP.ll)) {
+        SP.ll <- SP
+      }
     }
     
     disableDefaultUI <- FALSE
@@ -124,13 +135,8 @@ symbolGoogleMaps <-
     }
     
     if(!is.list(previousMap)) {
-      functions <- ""
-      
-      # Creating functions for checkbox control, Show , Hide and Toggle control
-      # Set of JavaScript functionalities
-      funs <- createMapFunctions()
-      
-      functions <- paste(functions,funs,sep="")
+      # Creating functions for checkbox control, Show, Hide and Toggle control
+      functions <- createMapFunctions()
       
       init <- createInitialization(SP.ll,
                                    add=T,
@@ -151,7 +157,7 @@ symbolGoogleMaps <-
                                    scrollwheel=scrollwheel,
                                    streetViewControl= streetViewControl)
       # Put all functions together
-      functions <- paste( functions,init, sep="")  
+      functions <- paste(functions,init, sep="")  
       
     } else { 
       functions <- previousMap$functions
@@ -195,19 +201,16 @@ symbolGoogleMaps <-
       att1 <- ""
       
       if(!is.list(previousMap)) {
-        var <- ""
-        # Declare variables in JavaScript marker and map
-        var <- paste(' var marker \n var ',map,' \n')
-        # Create all markers and store them in markersArray - PointsName
+        # Declare JavaScript variables
+        var <- createJsVars(map = map)
       } else { 
         var <- previousMap$var
       }
       
-      var <- paste(var,'var ',pointsName,'=[] ;')
-      var1 <- ""
-      k <- 1:length(names(SP.ll@data))
+      var <- paste0(var,'\nvar ',pointsName,'=[];\n')
       
       ## att is a character vector for marker Titles. Handle embedded single quotes
+      k <- 1:length(names(SP.ll@data))
       att <- paste(lapply(as.list(1:length(SP.ll@coords[,1])), 
                           function(i) paste(names(SP.ll@data)[k],": ",
                                             sapply(k, function(k) as.character(SP.ll@data[i,k])), collapse="\\r", sep="")))
@@ -226,6 +229,7 @@ symbolGoogleMaps <-
       }
       
       ## Generate code to create Symbols
+      var1 <- ""
       var1 <- paste(sapply(as.list(1:length(SP.ll@coords[,1])), 
                            function(i) paste(var1,
                                              createSymbol(lonlat=SP.ll@coords[i,],
@@ -238,14 +242,14 @@ symbolGoogleMaps <-
                                                           visible=visible,
                                                           zIndex=ifelse(length(zIndex)==nrow(SP.ll@data),zIndex[i],zIndex[1]),
                                                           
-                                                          symbolPath=symbolPath,
-                                                          symbolFillColor=symbolFillColor,
-                                                          symbolFillOpacity=symbolFillOpacity,
+                                                          symbolPath=ifelse(length(symbolPath)==nrow(SP.ll@data),symbolPath[i],symbolPath[1]),
+                                                          symbolFillColor=ifelse(length(symbolFillColor)==nrow(SP.ll@data),symbolFillColor[i],symbolFillColor[1]),
+                                                          symbolFillOpacity=ifelse(length(symbolFillOpacity)==nrow(SP.ll@data),symbolFillOpacity[i],symbolFillOpacity[1]),
                                                           symbolScale=sqrt(SP@data[i,zcol]/pi)*2 / zcolIndexBase * minScale,
                                                           ## Add linear scale option?  SP@data[i,zcol]/zcolIndexBase * minScale,
-                                                          strokeColor=strokeColor,
-                                                          strokeWeight=strokeWeight,
-                                                          strokeOpacity=strokeOpacity),
+                                                          strokeColor=ifelse(length(strokeColor)==nrow(SP.ll@data),strokeColor[i],strokeColor[1]),
+                                                          strokeWeight=ifelse(length(strokeWeight)==nrow(SP.ll@data),strokeWeight[i],strokeWeight[1]),
+                                                          strokeOpacity=ifelse(length(strokeOpacity)==nrow(SP.ll@data),strokeOpacity[i],strokeOpacity[1])),
                                              '\n',sep="")),
                     pointsName,'.push(marker); \n',sep="",collapse='\n')
       
@@ -268,8 +272,8 @@ symbolGoogleMaps <-
       }
       
       var <- paste(var,var1)
-      infW <- ""
       
+      infW <- ""
       infW <- paste(lapply(as.list(1:length(SP.ll@coords[,1])), 
                            function(i) {
                              paste(infW,
@@ -281,13 +285,24 @@ symbolGoogleMaps <-
                                                           disableAutoPan = InfoWindowControl$disableAutoPan,
                                                           maxWidth=InfoWindowControl$maxWidth,
                                                           pixelOffset=InfoWindowControl$pixelOffset,
-                                                          zIndex=InfoWindowControl$zIndex),' \n') }),collapse='\n')
+                                                          zIndex=InfoWindowControl$zIndex),' \n') 
+                           }),
+                    collapse='\n')
       
       ## If layerNameEnabled is FALSE, hide this map layer on load
       functions <- paste(functions,infW,
                          ifelse(layerNameEnabled,'\n showO(','\n hideO('),
                          pointsName,',"',boxname,'",',map,');',sep="")
       
+      ## Add traffic, transit and/or bicycling layer show/hide JavaScript function calls
+      functions <- paste0(functions,
+                          createMapLayerJsCalls(map = map,
+                                                boxnamePrefix = boxname,
+                                                trafficLayerEnabled = trafficLayerEnabled,
+                                                transitLayerEnabled = transitLayerEnabled,
+                                                bicycleLayerEnabled = bicycleLayerEnabled))      
+      
+      ## Create/update <script> and <head> closure and add map legend html
       if(!is.list(previousMap)) {
         endhtm <- paste('</script> \n </head> \n <body onload="initialize()"> \n  <div id="',mapCanvas,'"></div>  \n
                            \n <div id="cBoxes"> \n', sep='')              
@@ -300,9 +315,18 @@ symbolGoogleMaps <-
           endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <b>',
                           paste(layerGroupName,collapse = " <br> "),'</b> </td> </tr> </table> \n',sep="")
         }
-        endhtm <- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
+        endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <input type="checkbox" id="',boxname,
                         '" onClick=\'boxclick(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName,'</b> </td> </tr> </table> \n',sep="")
+        
+        ## Add optional traffic, transit and bicycle layers
+        endhtm <- paste0(endhtm,
+                         createMapLayerHtml(map = map,
+                                            boxnamePrefix = boxname,
+                                            trafficLayerEnabled = trafficLayerEnabled,trafficLayerName = trafficLayerName,
+                                            transitLayerEnabled = transitLayerEnabled,transitLayerName = transitLayerName,
+                                            bicycleLayerEnabled = bicycleLayerEnabled,bicycleLayerName = bicycleLayerName))
       }
+      
     } else {
       ## SP object is not supported for plotting using symbols
       message("SP object must be SpatialPointsDataFrame class!") 
@@ -314,7 +338,7 @@ symbolGoogleMaps <-
     var lng = event.latLng.lng();
     alert('Lat=' + lat + '; Lng=' + lng);}); " , " \n }" )
       endhtm <- paste(endhtm,'</div> \n </body>  \n  </html>')
-      write(starthtm, filename,append=F)
+      write(starthtm, filename,append=FALSE)
       write(var, filename,append=TRUE)
       write(functions, filename,append=TRUE)
       write(endhtm, filename,append=TRUE)

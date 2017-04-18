@@ -1,5 +1,6 @@
 ## 7/12/2015: Common function that adds Javascript functions to map layers
 ## Write once instead of repeating in each routine
+## 3/12/2017: Added support for traffic, transit and bicycle layers
 
 createMapFunctions <- function() {
 
@@ -81,21 +82,87 @@ function setLineWeight(MLPArray,textnameW) {
   } 
 }
 
-function legendDisplay(box,divLegendImage) {
-  element = document.getElementById(divLegendImage).style;
-  if (box.checked) { 
-    element.display='block';
-  } else {  
-    element.display='none';
-  }
-}
-
 function boxclickR(box,R,boxname, map) {
   if (box.checked) {
     showR(R,boxname,map); 
   } else { 
     hideR(R,boxname);
   } 
+}
+
+// Added for TRAFFIC support
+function showTraffic(boxname, map) {
+  if (typeof(trafficLayer) === 'undefined') {
+	  trafficLayer = new google.maps.TrafficLayer();
+	}
+  trafficLayer.setMap(map);
+  document.getElementById(boxname).checked = true;
+}
+
+function hideTraffic(boxname, map) {
+  if (typeof(trafficLayer) === 'undefined') {
+	  trafficLayer = new google.maps.TrafficLayer();
+  }
+  trafficLayer.setMap(null);
+  document.getElementById(boxname).checked = false;
+}
+
+function boxclickTraffic(box, boxname, map) {
+  if (box.checked) {
+    showTraffic(boxname, map);
+  } else {
+    hideTraffic(boxname);
+  }
+}
+
+// Added for TRANSIT support
+function showTransit(boxname, map) {
+  if (typeof(transitLayer) === 'undefined') {
+	  transitLayer = new google.maps.TransitLayer();
+	}
+  transitLayer.setMap(map);
+  document.getElementById(boxname).checked = true;
+}
+
+function hideTransit(boxname, map) {
+  if (typeof(transitLayer) === 'undefined') {
+	  transitLayer = new google.maps.TransitLayer();
+	}
+  transitLayer.setMap(null);
+  document.getElementById(boxname).checked = false;
+}
+
+function boxclickTransit(box, boxname, map) {
+  if (box.checked) {
+    showTransit(boxname, map);
+  } else {
+    hideTransit(boxname);
+  }
+}
+
+// Added for BICYCLE support
+function showBicycle(boxname, map) {
+  if (typeof(bicycleLayer) === 'undefined') {
+	  bicycleLayer = new google.maps.BicyclingLayer();
+	}
+  bicycleLayer.setMap(map);
+  document.getElementById(boxname).checked = true;
+}
+
+function hideBicycle(boxname, map) {
+  if (typeof(bicycleLayer) === 'undefined') {
+	  bicycleLayer = new google.maps.BicyclingLayer();
+  }
+  bicycleLayer.setMap(null);
+  document.getElementById(boxname).checked = false;
+}
+
+function boxclickBicycle(box, boxname, map) {
+  if (box.checked) {
+    showBicycle(boxname, map);
+  } else {
+    hideBicycle(boxname);
+  }
 }
 
 function legendDisplay(box,divLegendImage) {
@@ -105,7 +172,7 @@ function legendDisplay(box,divLegendImage) {
   } else {  
     element.display='none';
   }
-}  \n\n ",sep="")
+}\n\n",sep="")
 
   return(funs)
 }

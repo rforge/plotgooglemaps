@@ -55,6 +55,12 @@ plotGoogleMaps(SP,
                css = "",                                     
                api="https://maps.googleapis.com/maps/api/js?libraries=visualization",
                openMap = TRUE,
+               trafficLayerEnabled = NULL,
+               trafficLayerName = "Traffic",
+               transitLayerEnabled = NULL,
+               transitLayerName = "Transit",
+               bicycleLayerEnabled = NULL,
+               bicycleLayerName = "Bicycle",
                ...) }
 \arguments{
   \item{SP}{object of \link[sp]{Spatial-class} with
@@ -127,13 +133,21 @@ plotGoogleMaps(SP,
   \item{mapCanvas}{name of map DIV element}
   \item{css}{CSS for mapCanvas and cBoxes}
   \item{api}{see \url{https://developers.google.com/maps/documentation/javascript/tutorial}}
-  \item{openMap}{if TRUE map is browesed by default browser}
+  \item{openMap}{if TRUE map is opened by default browser}
+  \item{trafficLayerEnabled}{If TRUE, display current traffic conditions. If NULL (default), do not add traffic map layer (for backwards compatibility)}
+  \item{trafficLayerName}{Layer name to use for traffic layer in map legend. Default is "Traffic". Has no effect if trafficLayerEnabled is NULL}
+  \item{transitLayerEnabled}{If TRUE, display transit map layer. If NULL (default), do not add transit map layer (for backwards compatibility)}
+  \item{transitLayerName}{Layer name to use for transit layer in map legend. Default is "Transit". Has no effect if transitLayerEnabled is NULL}
+  \item{bicycleLayerEnabled}{If TRUE, display bicycle map layer. If NULL (default), do not add bicycle map layer (for backwards compatibility)}
+  \item{bicycleLayerName}{Layer name to use for bicycle layer in map legend. Default is "Bicycle". Has no effect if bicycleLayerEnabled is NULL}
   \item{...}{optional arguments}
 }
 \value{This function returns a list with HTML, JavaScript, Google Maps API key and
        else what is necessary for the final web map. The second output is html file ready to use.}
 \author{Milan Kilibarda <kili@grf.bg.ac.rs>}
 \seealso{
+\link{symbolGoogleMaps},
+\link{heatmapGoogleMaps},
 \link{bubbleGoogleMaps},
 \link{ellipseGoogleMaps},
 \link{segmentGoogleMaps}

@@ -38,6 +38,12 @@ heatmapGoogleMaps <-
            ## Call with visualization library
            api="https://maps.googleapis.com/maps/api/js?libraries=visualization",
            openMap= TRUE,
+           trafficLayerEnabled = NULL,
+           trafficLayerName = "Traffic",
+           transitLayerEnabled = NULL,
+           transitLayerName = "Transit",
+           bicycleLayerEnabled = NULL,
+           bicycleLayerName = "Bicycle",
            ...){
     
     ###############################################################################
@@ -74,6 +80,11 @@ heatmapGoogleMaps <-
     
     ## Convert projection to WGS84
     SP.ll <- spTransform(SP, CRS("+proj=longlat +datum=WGS84"))
+    ## If SP was already in the required projection, use the original SP to preserve @bbox settings
+    ## spTranform() will reset @bbox to show entire object
+    if(identicalCRS(SP,SP.ll)) {
+      SP.ll <- SP
+    }
     
     disableDefaultUI <- FALSE
     Centar <- c(mean(SP.ll@bbox[1,]),mean(SP.ll@bbox[2,]))
@@ -93,12 +104,8 @@ heatmapGoogleMaps <-
     }
     
     if(!is.list(previousMap)) {
-      functions <- ""
-      # Creating functions for checkbox control, Show , Hide and Toggle control
-      # Set of JavaScript functionalities
-      funs <- createMapFunctions()
-      
-      functions <- paste(functions,funs,sep="")
+      # Creates JavaScript functions for checkbox control, Show, Hide and Toggle control
+      functions <- createMapFunctions()
       
       init <- createInitialization(SP.ll,
                                    add=T,
@@ -125,7 +132,6 @@ heatmapGoogleMaps <-
     }
     
     fjs <- ""
-    
     # fjs<-paste(fjs,'\n USGSOverlay.prototype = new google.maps.OverlayView(); \n',sep="")
     # fjs<-paste(fjs,'function USGSOverlay(bounds, image, map) {\n      this.bounds_ = bounds;\n      this.image_ = image;\n      this.map_ = map;\n      this.div_ = null;\n      this.setMap(map); }\n',sep="")
     # fjs<-paste(fjs,'USGSOverlay.prototype.onAdd = function() {\n      var div = document.createElement("DIV");\n      div.style.border = "none";\n      div.style.borderWidth = "0px";\n      div.style.position = "absolute";\n      var img = document.createElement("img");\n      img.src = this.image_;\n      img.style.width = "100%";\n      img.style.height = "100%";\n      div.appendChild(img);\n      this.div_ = div;\n      this.div_.style.opacity = ',fillOpacity,';\n      var panes = this.getPanes();\n      panes.overlayImage.appendChild(this.div_);}\n' ,sep="")
@@ -137,8 +143,8 @@ heatmapGoogleMaps <-
     # fjs<-paste(fjs,'USGSOverlay.prototype.toggleDOM = function() {\n          if (this.getMap()) {\n            this.setMap(null);\n          } else {\n            this.setMap(this.map_);}}\n' ,sep="")
     
     if(map.width!=control.width & css=="") {
-      css= paste('\n #',mapCanvas,' { float: left; width:', map.width,'; height:' , map.height,'; }',
-                 '\n #cBoxes {float: left; width:', control.width,';height: ', control.height,';overflow:auto} \n', sep='') 
+      css <- paste('\n #',mapCanvas,' { float: left; width:', map.width,'; height:' , map.height,'; }',
+                   '\n #cBoxes {float: left; width:', control.width,';height: ', control.height,';overflow:auto} \n', sep='') 
     } else if(css=="") {
       css <- paste(' #',mapCanvas,' {min-height: 100%;height:auto; } \n #cBoxes {position:absolute;right:5px; top:50px; background:white}',sep='')
     }
@@ -160,10 +166,10 @@ heatmapGoogleMaps <-
       boxname<-paste(pointsName,'box',sep="")
       
       if(!is.list(previousMap)) {
-        var <- ""
-        # Declare variables in JavaScript marker and map
-        var <- paste(' var marker \n var ',map,' \n',sep="")
-        # Create all markers and store them in markersArray - PointsName
+        # Declare JavaScript variables
+        var <- createJsVars(map = map)
+        # Declare JavaScript marker variable
+        var <- paste0(var,"var marker;\n")
       } else {
         var <- previousMap$var
       }
@@ -195,6 +201,14 @@ heatmapGoogleMaps <-
                          ifelse(layerNameEnabled,'\n showHeatmap(','\n hideHeatmap('),
                          pointsName,',"',boxname,'",',map,');',sep="")
       
+      ## Add traffic, transit and/or bicycling layer show/hide JavaScript function calls
+      functions <- paste0(functions,
+                          createMapLayerJsCalls(map = map,
+                                                boxnamePrefix = boxname,
+                                                trafficLayerEnabled = trafficLayerEnabled,
+                                                transitLayerEnabled = transitLayerEnabled,
+                                                bicycleLayerEnabled = bicycleLayerEnabled))      
+      
       if(!is.list(previousMap)) {
         endhtm <- paste('</script> \n </head> \n <body onload="initialize()"> \n 
                             <div id="',mapCanvas,'"></div>  \n
@@ -209,8 +223,16 @@ heatmapGoogleMaps <-
                           paste(layerGroupName,collapse = " <br> "),'</b> </td> </tr> </table> \n',sep="")
         }
         
-        endhtm <- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
-                       '" onClick=\'boxclickHeatmap(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName,'</b> </td> </tr> </table> ',sep="")
+        endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <input type="checkbox" id="',boxname,
+                        '" onClick=\'boxclickHeatmap(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName,'</b> </td> </tr> </table> ',sep="")
+        
+        ## Add optional traffic, transit and bicycle layers
+        endhtm <- paste0(endhtm,
+                         createMapLayerHtml(map = map,
+                                            boxnamePrefix = boxname,
+                                            trafficLayerEnabled = trafficLayerEnabled,trafficLayerName = trafficLayerName,
+                                            transitLayerEnabled = transitLayerEnabled,transitLayerName = transitLayerName,
+                                            bicycleLayerEnabled = bicycleLayerEnabled,bicycleLayerName = bicycleLayerName))
       }
       
     } else if(class(SP)[1]=="SpatialPointsDataFrame") {
@@ -225,10 +247,10 @@ heatmapGoogleMaps <-
       att1 <- ""
       
       if(!is.list(previousMap)) {
-        var <- ""
-        # Declare variables in JavaScript marker and map
-        var <- paste(" var marker \n var ",map," \n",sep="")
-        # Create all markers and store them in markersArray - PointsName
+        # Declare JavaScript variables
+        var <- createJsVars(map = map)
+        # Declare JavaScript marker variable
+        var <- paste0(var,"var marker;\n")
       } else { 
         var <- previousMap$var
       }
@@ -276,6 +298,14 @@ heatmapGoogleMaps <-
                          ifelse(layerNameEnabled,'\n showHeatmap(','\n hideHeatmap('),
                          pointsName,',"',boxname,'",',map,');',sep="")
       
+      ## Add traffic, transit and/or bicycling layer show/hide JavaScript function calls
+      functions <- paste0(functions,
+                          createMapLayerJsCalls(map = map,
+                                                boxnamePrefix = boxname,
+                                                trafficLayerEnabled = trafficLayerEnabled,
+                                                transitLayerEnabled = transitLayerEnabled,
+                                                bicycleLayerEnabled = bicycleLayerEnabled))      
+      
       if(!is.list(previousMap)) {
         endhtm <- paste('</script> \n </head> \n <body onload="initialize()"> \n  <div id="',mapCanvas,'"></div>  \n
                            \n <div id="cBoxes"> \n', sep='')              
@@ -289,8 +319,16 @@ heatmapGoogleMaps <-
                           paste(layerGroupName,collapse = " <br> "),'</b> </td> </tr> </table> \n',sep="")
         }
         
-        endhtm <- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
+        endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <input type="checkbox" id="',boxname,
                         '" onClick=\'boxclickHeatmap(this,',pointsName,',"',boxname,'",',map,');\' /> <b>', layerName ,'</b> </td> </tr> </table> ',sep="")
+        
+        ## Add optional traffic, transit and bicycle layers
+        endhtm <- paste0(endhtm,
+                         createMapLayerHtml(map = map,
+                                            boxnamePrefix = boxname,
+                                            trafficLayerEnabled = trafficLayerEnabled,trafficLayerName = trafficLayerName,
+                                            transitLayerEnabled = transitLayerEnabled,transitLayerName = transitLayerName,
+                                            bicycleLayerEnabled = bicycleLayerEnabled,bicycleLayerName = bicycleLayerName))
       }
       
     }
@@ -305,11 +343,13 @@ heatmapGoogleMaps <-
                          "alert('Lat=' + lat + '; Lng=' + lng);}); " , " \n }")
       
       endhtm <- paste(endhtm,'</div> \n </body>  \n  </html>')
-      write(starthtm, filename,append=F)
+      write(starthtm, filename,append=FALSE)
       write(var, filename,append=TRUE)
       write(functions, filename,append=TRUE)
       write(endhtm, filename,append=TRUE)
-      if(openMap) {browseURL(filename)}
+      if(openMap) { 
+        browseURL(filename)
+      }
     }
     
     return(list(starthtm=starthtm,var=var,functions=functions,endhtm=endhtm))

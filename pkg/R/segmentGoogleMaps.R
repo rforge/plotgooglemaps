@@ -47,6 +47,12 @@ segmentGoogleMaps <-
            css = "",
            api="https://maps.googleapis.com/maps/api/js?libraries=visualization",
            openMap=TRUE,
+           trafficLayerEnabled = NULL,
+           trafficLayerName = "Traffic",
+           transitLayerEnabled = NULL,
+           transitLayerName = "Transit",
+           bicycleLayerEnabled = NULL,
+           bicycleLayerName = "Bicycle",
            ...) {
     
     
@@ -82,6 +88,11 @@ segmentGoogleMaps <-
     SP <- as(SP, "SpatialPointsDataFrame")
     
     SP.ll <- spTransform(SP, CRS("+proj=longlat +datum=WGS84"))
+    ## If SP was already in the required projection, use the original SP to preserve @bbox settings
+    ## spTranform() will reset @bbox to show entire object
+    if(identicalCRS(SP,SP.ll)) {
+      SP.ll <- SP
+    }
     
     Centar <- c(mean(SP.ll@bbox[1,]),mean(SP.ll@bbox[2,]))
     sw <- c(SP.ll@bbox[2,1],SP.ll@bbox[1,1])
@@ -128,16 +139,13 @@ segmentGoogleMaps <-
     att1 <- ""
     
     if(!is.list(previousMap)) {
-      var <- ""
-      # Declare variables in JavaScript marker and map
-      var <- paste(' \n var', map, ' \n')
-      # Create all markers and store them in markersArray - PointsName
+      # Declare JavaScript variables
+      var <- createJsVars(map = map)
     } else { 
       var <- previousMap$var
     }
     
-    var <- paste(var,'var ',polyName,'=[]; \n')
-    var1 <- ""
+    var <- paste(var,'var ',polyName,'=[];\n')
     
     xx <- rep(colPalette,length(SP.ll@coords[,1]))
     
@@ -152,6 +160,7 @@ segmentGoogleMaps <-
       swxx <- rep(strokeWeight,length(SP.ll@polygons)) 
     } 
     
+    var1 <- ""
     var1 <- paste(lapply(as.list(1:length(SP.ll@polygons)), 
                          function(i) paste(var1,createPolygon(SP.ll@polygons[[i]],
                                                               fillColor=xx[i],
@@ -188,12 +197,8 @@ segmentGoogleMaps <-
     # Put all variables together
     var <- paste(var,var1)
     if (!is.list(previousMap)) {
-      functions <- ""
-      # Creating functions for checkbox comtrol, Show , Hide and Toggle control
-      # Set of JavaScript functionalities
-      funs <- createMapFunctions()
-      
-      functions <- paste(functions,funs,sep="")
+      # Creates JavaScript functions for checkbox control, Show, Hide and Toggle control
+      functions <- createMapFunctions()
       
       init <- createInitialization(SP.ll,
                                    add=T,
@@ -222,7 +227,7 @@ segmentGoogleMaps <-
     
     infW <- ""
     infW <- paste(lapply(as.list(1:length(SP.ll@polygons)), 
-                         function(i) 
+                         function(i) {
                            paste(infW,createInfoWindowEvent(Line_or_Polygon=paste(polyName,'[',i-1,'] ',sep=""),
                                                             content=att[i],
                                                             map=InfoWindowControl$map,
@@ -231,16 +236,24 @@ segmentGoogleMaps <-
                                                             disableAutoPan = InfoWindowControl$disableAutoPan,
                                                             maxWidth=InfoWindowControl$maxWidth,
                                                             pixelOffset=InfoWindowControl$pixelOffset,
-                                                            zIndex=InfoWindowControl$zIndex),
-                                 ' \n')),collapse='\n' )                  
+                                                            zIndex=InfoWindowControl$zIndex),' \n')
+                         }),
+                  collapse='\n' ) 
     
     ## If layerNameEnabled is FALSE, hide this map layer on load
     functions <- paste(functions,infW,
                        ifelse(layerNameEnabled,'\n showO(','\n hideO('),
                        polyName,',"',boxname,'",',map,');',sep="")
     
-    fjs <- ""
+    ## Add traffic, transit and/or bicycling layer show/hide JavaScript function calls
+    functions <- paste0(functions,
+                        createMapLayerJsCalls(map = map,
+                                              boxnamePrefix = boxname,
+                                              trafficLayerEnabled = trafficLayerEnabled,
+                                              transitLayerEnabled = transitLayerEnabled,
+                                              bicycleLayerEnabled = bicycleLayerEnabled))
     
+    fjs <- ""
     fjs <- paste(fjs,'\n USGSOverlay.prototype = new google.maps.OverlayView(); \n',sep="")
     fjs <- paste(fjs,'function USGSOverlay(bounds, image, map) {\n      this.bounds_ = bounds;\n      this.image_ = image;\n      this.map_ = map;\n      this.div_ = null;\n      this.setMap(map); }\n',sep="")
     fjs <- paste(fjs,'USGSOverlay.prototype.onAdd = function() {\n      var div = document.createElement("DIV");\n      div.style.border = "none";\n      div.style.borderWidth = "0px";\n      div.style.position = "absolute";\n      var img = document.createElement("img");\n      img.src = this.image_;\n      img.style.width = "100%";\n      img.style.height = "100%";\n      div.appendChild(img);\n      this.div_ = div;\n      this.div_.style.opacity = ',fillOpacity,';\n      var panes = this.getPanes();\n      panes.overlayImage.appendChild(this.div_);}\n' ,sep="")
@@ -254,10 +267,10 @@ segmentGoogleMaps <-
     if(map.width!=control.width & css=="") {
       css <- paste('\n #',mapCanvas,' { float: left; width:', map.width,'; height:' , map.height,'; }',
                    '\n #cBoxes {float: left; width:', control.width,'; height: ', control.height,'; overflow:auto} \n', sep='') 
-    } else if (css=="") {
+    } else if(css=="") {
       css <- paste(' #',mapCanvas,' {min-height: 100%;height:auto; } \n #cBoxes {position:absolute;right:5px; top:50px; background:white}',sep='')
     }
-
+    
     starthtm <- paste('<!DOCTYPE html> \n <html> \n <head> \n <meta name="viewport" content="initial-scale=1.0, user-scalable=no" /> ',
                       '<meta charset="utf-8"> \n <style type="text/css">  \n html { height: 100% ; font-size: small} \n body { height: 100%; margin: 0px; padding: 0px }',
                       css,
@@ -279,8 +292,8 @@ segmentGoogleMaps <-
         endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <b>',
                         paste(layerGroupName,collapse = " <br> "),'</b> </td> </tr> </table> \n',sep="")
       }
-
-      endhtm <- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
+      
+      endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <input type="checkbox" id="',boxname,
                       '" onClick=\'boxclick(this,',polyName,',"',boxname,'",',map,');\' /> <b>', layerName,'</b> </td> </tr> \n',sep="")
       
       ## Show Opacity and Line Weight controls in legend?
@@ -295,6 +308,7 @@ segmentGoogleMaps <-
                                    size=3 /> Line weight (pixels) </td> </tr> \n ',sep="")
       } 
     }
+    
     if(legend) {
       pp <- segmentLegend(attribute=names(SP.ll@data[,zcol]),
                           colPalette=colPalette,
@@ -312,6 +326,16 @@ segmentGoogleMaps <-
                            </td> </tr> \n </table> \n   <hr> \n',sep="")
     } else { 
       endhtm<- paste(endhtm, '</table> \n <hr>  \n') 
+    }
+    
+    if(control) {
+      ## Add optional traffic, transit and bicycle layers
+      endhtm <- paste0(endhtm,
+                       createMapLayerHtml(map = map,
+                                          boxnamePrefix = boxname,
+                                          trafficLayerEnabled = trafficLayerEnabled,trafficLayerName = trafficLayerName,
+                                          transitLayerEnabled = transitLayerEnabled,transitLayerName = transitLayerName,
+                                          bicycleLayerEnabled = bicycleLayerEnabled,bicycleLayerName = bicycleLayerName))
     }
     
     if (!add) {

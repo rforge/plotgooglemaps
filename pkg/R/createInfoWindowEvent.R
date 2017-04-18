@@ -16,13 +16,13 @@ createInfoWindowEvent <-
     }
     
     if (is.numeric(position)) {
-      position <- paste("new google.maps.LatLng(",position[2],",",position[1],")")
+      position <- paste0("new google.maps.LatLng(",position[2],",",position[1],")")
     }
     if (is.numeric(position)) {
-      pixelOffset <- paste("new google.maps.Size",pixelOffset[1],",",pixelOffset[1],")")
+      pixelOffset <- paste0("new google.maps.Size ",pixelOffset[1],",",pixelOffset[1],")")
     }
 
-    x <- paste( "\n var infowindow = new google.maps.InfoWindow({ content: '', disableAutoPan:", disableAutoPan,
+    x <- paste("\n var infowindow = new google.maps.InfoWindow({ content: '', disableAutoPan:", disableAutoPan,
              ", maxWidth :",maxWidth,
              ", pixelOffset :",pixelOffset,
              ", position :",position ,

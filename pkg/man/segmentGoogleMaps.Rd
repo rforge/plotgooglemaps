@@ -1,6 +1,6 @@
 \name{segmentGoogleMaps}
 \alias{segmentGoogleMaps}
-\title{Create a segment circles - pie charts plot of spatial data on Google Maps, 
+\title{Create segment circles - pie charts plot of spatial data on Google Maps, 
        by using two or more related attributes.}
 \description{Plot htm output with Google Maps API in form of pie charts plot form spatial
              data by using two or more related attributes. Ready to use as local htm file or into your own website.}
@@ -53,6 +53,12 @@ segmentGoogleMaps(SP,
                   css = "",
                   api="https://maps.googleapis.com/maps/api/js?libraries=visualization",
                   openMap=TRUE,
+                  trafficLayerEnabled = NULL,
+                  trafficLayerName = "Traffic",
+                  transitLayerEnabled = NULL,
+                  transitLayerName = "Transit",
+                  bicycleLayerEnabled = NULL,
+                  bicycleLayerName = "Bicycle",
                   ...)}
 \arguments{\item{SP}{object of \link[sp]{SpatialPointsDataFrame-class} with
           associated coordinate reference systems}
@@ -124,7 +130,13 @@ segmentGoogleMaps(SP,
   \item{mapCanvas}{name of map DIV element}
   \item{css}{CSS for mapCanvas and cBoxes}
   \item{api}{see \url{https://developers.google.com/maps/documentation/javascript/tutorial}}
-  \item{openMap}{if TRUE map is browesed by default browser}
+  \item{openMap}{if TRUE map is opened by default browser}
+  \item{trafficLayerEnabled}{If TRUE, display current traffic conditions. If NULL (default), do not add traffic map layer (for backwards compatibility)}
+  \item{trafficLayerName}{Layer name to use for traffic layer in map legend. Default is "Traffic". Has no effect if trafficLayerEnabled is NULL}
+  \item{transitLayerEnabled}{If TRUE, display transit map layer. If NULL (default), do not add transit map layer (for backwards compatibility)}
+  \item{transitLayerName}{Layer name to use for transit layer in map legend. Default is "Transit". Has no effect if transitLayerEnabled is NULL}
+  \item{bicycleLayerEnabled}{If TRUE, display bicycle map layer. If NULL (default), do not add bicycle map layer (for backwards compatibility)}
+  \item{bicycleLayerName}{Layer name to use for bicycle layer in map legend. Default is "Bicycle". Has no effect if bicycleLayerEnabled is NULL}
   \item{...}{optional arguments}
 }
 \value{This function returns a list with HTML, JavaScript, Google Maps API key and
@@ -133,6 +145,8 @@ segmentGoogleMaps(SP,
 
 \seealso{
 \link{plotGoogleMaps},
+\link{symbolGoogleMaps},
+\link{heatmapGoogleMaps},
 \link{ellipseGoogleMaps},
 \link{bubbleGoogleMaps}
 }

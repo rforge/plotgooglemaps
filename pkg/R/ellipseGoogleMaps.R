@@ -45,6 +45,12 @@ ellipseGoogleMaps <-
            css = "",
            api="https://maps.googleapis.com/maps/api/js?libraries=visualization",
            openMap=TRUE,
+           trafficLayerEnabled = NULL,
+           trafficLayerName = "Traffic",
+           transitLayerEnabled = NULL,
+           transitLayerName = "Transit",
+           bicycleLayerEnabled = NULL,
+           bicycleLayerName = "Bicycle",
            ...){
     
     ###############################################################################
@@ -79,6 +85,11 @@ ellipseGoogleMaps <-
     SP <- a
     
     SP.ll <- spTransform(SP, CRS("+proj=longlat +datum=WGS84"))
+    ## If SP was already in the required projection, use the original SP to preserve @bbox settings
+    ## spTranform() will reset @bbox to show entire object
+    if(identicalCRS(SP,SP.ll)) {
+      SP.ll <- SP
+    }
     
     disableDefaultUI <- FALSE
     Centar <- c(mean(SP.ll@bbox[1,]),mean(SP.ll@bbox[2,]))
@@ -108,12 +119,8 @@ ellipseGoogleMaps <-
     }
     
     if (!is.list(previousMap)) {
-      functions <- ""
-      # Creating functions for checkbox comtrol, Show , Hide and Toggle control
-      # Set of JavaScript functionalities
-      funs <- createMapFunctions()
-      
-      functions <- paste(functions,funs,sep="")
+      # Creates JavaScript functions for checkbox control, Show, Hide and Toggle control
+      functions <- createMapFunctions()
       
       init <- createInitialization(SP.ll,
                                    add=T,
@@ -138,7 +145,6 @@ ellipseGoogleMaps <-
     }
     
     fjs <- ""
-    
     fjs <- paste(fjs,'\n USGSOverlay.prototype = new google.maps.OverlayView(); \n',sep="")
     fjs <- paste(fjs,'function USGSOverlay(bounds, image, map) {\n      this.bounds_ = bounds;\n      this.image_ = image;\n      this.map_ = map;\n      this.div_ = null;\n      this.setMap(map); }\n',sep="")
     fjs <- paste(fjs,'USGSOverlay.prototype.onAdd = function() {\n      var div = document.createElement("DIV");\n      div.style.border = "none";\n      div.style.borderWidth = "0px";\n      div.style.position = "absolute";\n      var img = document.createElement("img");\n      img.src = this.image_;\n      img.style.width = "100%";\n      img.style.height = "100%";\n      div.appendChild(img);\n      this.div_ = div;\n      this.div_.style.opacity = 0.5;\n      var panes = this.getPanes();\n      panes.overlayImage.appendChild(this.div_);}\n' ,sep="")
@@ -187,30 +193,29 @@ ellipseGoogleMaps <-
     att1 <- ""
     
     if (!is.list(previousMap)) {
-      var <- ""
-      # Declare variables in JavaScript marker and map
-      var <- c(' \n var map \n')
-      # Create all markers and store them in markersArray - PointsName
+      # Declare JavaScript variables
+      var <- createJsVars(map = map)
     } else { 
       var <- previousMap$var
     }
     
-    var <- paste(var,'var ',polyName,'=[]; \n')
-    var1 <- ""
+    var <- paste(var,'var ',polyName,'=[];\n')
     cxx <- PolyCol(attribute,colPalette)
     xx <- cxx$cols
     
     #  pp<-legendbar(cxx$brks,colPalette=cxx$col.uniq,legendName=divLegendImage)
     
-    var1 <- paste(lapply(as.list(1:length(SP.ll@polygons)), function(i) paste(var1,createPolygon(SP.ll@polygons[[i]],
-                                                                                                 fillColor=xx[i],
-                                                                                                 strokeColor=strokeColor,
-                                                                                                 strokeOpacity=strokeOpacity,
-                                                                                                 strokeWeight=strokeWeight,
-                                                                                                 geodesic=geodesic,
-                                                                                                 clickable=clickable,
-                                                                                                 fillOpacity=fillOpacity,
-                                                                                                 zIndex=zIndex),'\n',sep="")),
+    var1 <- ""
+    var1 <- paste(lapply(as.list(1:length(SP.ll@polygons)), 
+                         function(i) paste(var1,createPolygon(SP.ll@polygons[[i]],
+                                                              fillColor=xx[i],
+                                                              strokeColor=strokeColor,
+                                                              strokeOpacity=strokeOpacity,
+                                                              strokeWeight=strokeWeight,
+                                                              geodesic=geodesic,
+                                                              clickable=clickable,
+                                                              fillOpacity=fillOpacity,
+                                                              zIndex=zIndex),'\n',sep="")),
                   polyName,'.push(polygon); \n',sep="",collapse='\n')
     
     k <- 1:length(names(SP.ll@data))
@@ -237,9 +242,8 @@ ellipseGoogleMaps <-
     var <- paste(var,var1)
     
     infW <- ""
-    
     infW <- paste(lapply(as.list(1:length(SP.ll@polygons)), 
-                         function(i) 
+                         function(i) {
                            paste(infW,createInfoWindowEvent(Line_or_Polygon=paste(polyName,'[',i-1,'] ',sep=""),
                                                             content=att[i],
                                                             map=InfoWindowControl$map,
@@ -248,7 +252,9 @@ ellipseGoogleMaps <-
                                                             disableAutoPan = InfoWindowControl$disableAutoPan,
                                                             maxWidth=InfoWindowControl$maxWidth,
                                                             pixelOffset=InfoWindowControl$pixelOffset,
-                                                            zIndex=InfoWindowControl$zIndex),' \n')),collapse='\n')                
+                                                            zIndex=InfoWindowControl$zIndex),' \n')
+                         }),
+                  collapse='\n')                
     
     #                   for(i in 1:length(SP.ll@polygons)){
     #                   infW<-paste(infW,createInfoWindowEvent(Line_or_Polygon=
@@ -259,7 +265,15 @@ ellipseGoogleMaps <-
                        ifelse(layerNameEnabled,'\n showO(','\n hideO('),
                        polyName,',"',boxname,'",',map,');',sep="")
     
-    if (!is.list(previousMap)) {
+    ## Add traffic, transit and/or bicycling layer show/hide JavaScript function calls
+    functions <- paste0(functions,
+                        createMapLayerJsCalls(map = map,
+                                              boxnamePrefix = boxname,
+                                              trafficLayerEnabled = trafficLayerEnabled,
+                                              transitLayerEnabled = transitLayerEnabled,
+                                              bicycleLayerEnabled = bicycleLayerEnabled))      
+    
+    if(!is.list(previousMap)) {
       endhtm <- c('</script> \n </head> \n <body onload="initialize()"> \n 
                             <div id="map_canvas"></div>  \n
                            \n <div id="cBoxes"> \n')
@@ -272,8 +286,8 @@ ellipseGoogleMaps <-
         endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <b>',
                         paste(layerGroupName,collapse = " <br> "),'</b> </td> </tr> </table> \n',sep="")
       }
-
-      endhtm <- paste(endhtm,'<table> <tr> <td> <input type="checkbox" id="',boxname,
+      
+      endhtm <- paste(endhtm,'<table style="border-collapse:collapse; width:100%;"> <tr> <td> <input type="checkbox" id="',boxname,
                       '" onClick=\'boxclick(this,',polyName,',"',boxname,'",',map,');\' /> <b>', layerName,'</b> </td> </tr> \n',sep="")
       
       ## Show Opacity and Line Weight controls in legend?
@@ -288,10 +302,9 @@ ellipseGoogleMaps <-
                  size=3 /> Line weight (pixels) </td> </tr> \n ',sep="")
       }
     }
+    
     if(legend) {
-      
       pp <- legendbar(cxx$brks,colPalette=cxx$col.uniq,legendName=divLegendImage, temp=temporary)  
-      
       endhtm <- paste(endhtm,' \n <tr> <td> <input type="checkbox"  checked="checked" id="'
                       ,legendboxname,'" onClick=\'legendDisplay(this,"',
                       divLegendImage,'");\' /> LEGEND </td> </tr> \n <tr> <td>',
@@ -304,7 +317,17 @@ ellipseGoogleMaps <-
       endhtm <- paste(endhtm, '\n </table> \n',sep="") 
     }
     
-    if(add==F) {
+    if(control) {
+      ## Add optional traffic, transit and bicycle layers
+      endhtm <- paste0(endhtm,
+                       createMapLayerHtml(map = map,
+                                          boxnamePrefix = boxname,
+                                          trafficLayerEnabled = trafficLayerEnabled,trafficLayerName = trafficLayerName,
+                                          transitLayerEnabled = transitLayerEnabled,transitLayerName = transitLayerName,
+                                          bicycleLayerEnabled = bicycleLayerEnabled,bicycleLayerName = bicycleLayerName))
+    }
+    
+    if(add==FALSE) {
       functions <- paste(functions,"\n google.maps.event.addListener(map, 'rightclick', function(event) {
     var lat = event.latLng.lat();
     var lng = event.latLng.lng();

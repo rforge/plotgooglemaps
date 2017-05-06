@@ -130,7 +130,7 @@ segmentGoogleMaps <-
       layerName=nameOfSP
     }
     
-    attributeName <- paste(names(SP.ll@data[,zcol]),collapse ="",sep=" ")
+    attributeName <- paste(names(SP.ll@data[,zcol]),collapse =", ",sep=" ")
     
     if(layerName=="") {
       layerName=paste(nameOfSP,attributeName)

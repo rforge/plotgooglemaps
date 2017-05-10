@@ -1,14 +1,16 @@
 
-pieSP<-function(SPDF,
+pieSP <- function(SPDF,
                   zcol=1:length(SPDF@data),
                   scalelist=TRUE,  # TRUE proportional, FALSE pie charts same size
                   max.radius=100,  #m
-                  do.sqrt = TRUE
-){
+                  do.sqrt = TRUE) {
   
   ####  FUNCTION modified from plotGoogleMaps package
   
-  colPalette=rainbow(ncol(SPDF@data[,zcol]))
+  ## Changed ncol(SPDF@data[,zcol]) to length(zcol) to handle when zcol is a single column
+  # colPalette=rainbow(ncol(SPDF@data[,zcol]))
+  colPalette=rainbow(length(zcol))
+  
   fillColor=rainbow(length(zcol))
   strokeColor="red"
   
@@ -35,28 +37,34 @@ pieSP<-function(SPDF,
     if(do.sqrt){
       scale.level<- sqrt(ke/(sum(ke)) ) }else{scale.level<-ke/(sum(ke))}
     radius.level<-max.radius*scale.level
-    # list of radiuses for createSphereCircle
-    radius.vector<-   radius.level
+    ## Vector of radii for createSphereCircle
+    radius.vector <- radius.level
     dfi<-cbind(rep(NA,1+length(radius.vector)))
     dfi[1]=0
     
     if(max(scale.level)==0)
     {scale.level=0.1
-     scalelist=0.01}
+    scalelist=0.01}
     
     dfi[2:(length(radius.vector)+1)]=360/sum(scale.level)*  scale.level
     
-    
+    ## fi is a single column matrix that contains the start and stop number of degrees
+    ## for each pie slice in this pie. 0 points North and the pie slices are expressed
+    ## in offset degrees from 0 in COUNTER-CLOCKWISE fashion (e.g. 90 points WEST instead of EAST)
     fi= cbind(rep(NA,2*length(radius.vector)) )
     dfi=as.numeric(dfi)
     for (i in (seq(2,length(fi),by=2))){
       fi[i]=sum(dfi[1:(i/2+1)])
     }
     fi[1]=0
-    for (i in (seq(3,length(fi),by=2))){
-      fi[i]=fi[i-1]
-    }
     
+    ## Handle case when we only have 1 zol variable in partOfSP 
+    ## (fi has two entries, 0 and 360 - one "slice" that covers the entire pie)
+    if(length(fi)>3) {
+      for (i in (seq(3,length(fi),by=2))){
+        fi[i]=fi[i-1]
+      }
+    }
     
     radius.vector=scalelist*max.radius/6378000
     
@@ -65,12 +73,15 @@ pieSP<-function(SPDF,
     
     paths<-as.list(rep(NA,length(radius.vector)))
     
+    ## Construct lat-long coords for each "pie slice"
     for(ik in (seq(2,length(fi),by=2))){
       radius<-  radius.vector
       
       coords<-cbind(rep(NA,11),rep(NA,11))
       coords[1,]  <- c(  center[,1], center[,2])
       j<-2
+      
+      ## Construct lat-long coords for this particular "pie slice"
       for (i in seq(fi[ik-1],fi[ik],length.out=10)) {
         tc <- (pi/180)*i
         y <- asin(sin(lat1)*cos(radius)+cos(lat1)*sin(radius)*cos(tc))
@@ -82,20 +93,24 @@ pieSP<-function(SPDF,
         j<-j+1
       }
       
-      
-      
       lonlat<-coords
       paths[[ik/2]]<-rbind(lonlat,lonlat[1,])
     }
     pol=paths
-    lonlat<-rbind( paths[[1]],paths[[1]][1,])
-    pol[[1]]<-Polygon(lonlat,hole=FALSE)
-    pol[[1]]<-Polygons(list(pol[[1]]),ID=id-1)
+    ## Close polygon (make the last point the same as the first)
+    lonlat <- rbind(paths[[1]],paths[[1]][1,])
+    pol[[1]] <- Polygon(lonlat,hole=FALSE)
+    pol[[1]] <- Polygons(list(pol[[1]]),ID=id-1)
     
-    for(i in (2:(length(paths)))){
-      lonlat<-rbind( paths[[i]],paths[[i]][1,])
-      pol[[i]]<-Polygon(lonlat,hole=FALSE)
-      pol[[i]]<-Polygons(list(pol[[i]]),ID=id-i)   }
+    ## Loop through remaining pie slices for this pie to create Polygons list
+    ## (if we have more than 1 zcol variable)
+    if(length(paths)>1) {
+      for(i in (2:(length(paths)))) {
+        lonlat<-rbind(paths[[i]],paths[[i]][1,])
+        pol[[i]]<-Polygon(lonlat,hole=FALSE)
+        pol[[i]]<-Polygons(list(pol[[i]]),ID=id-i)   
+      }
+    }
     
     return(pol)
     
@@ -114,7 +129,10 @@ pieSP<-function(SPDF,
     rgbc<-col2rgb(colPalette)
     colPalette<-apply(rgbc,2,function(x) rgb(x[1],x[2],x[3],maxColorValue=255))}
   if(scalelist){
-    xdata<-SP@data[,zcol]
+    ## Changed SP@data[,zcol] to SP@data[zcol] to handle when zcol is a single column
+    # xdata<-SP@data[,zcol]
+    xdata<-SP@data[zcol]
+    
     ## Existing code commented out
     #xdata <- apply(xdata, 2L, function(x) (x - min(x, na.rm = TRUE))/diff(range(x, na.rm = TRUE)))
     #xsum <- apply(xdata, 1L,function(x) ( sum(x)))
@@ -133,6 +151,7 @@ pieSP<-function(SPDF,
     num[i*length(zcol)-(0:(length(zcol)-1))]=i
   }
   
+  ## Call createSphereSegment to create a "pie" for each data point
   Pols<- lapply( 1:length(SP.ll@data[,1]), function(i) {
     createSphereSegment(SP.ll[i,zcol],
                         max.radius=max.radius,  #m

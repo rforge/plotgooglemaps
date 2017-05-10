@@ -154,6 +154,7 @@ segmentGoogleMaps <-
                    scalelist,  # TRUE proportional, FALSE pie charts same size
                    max.radius,  #m
                    do.sqrt )
+
     if(length(strokeWeight)==length(SP.ll@polygons)) {
       swxx <- strokeWeight
     } else {
@@ -310,7 +311,9 @@ segmentGoogleMaps <-
     }
     
     if(legend) {
-      pp <- segmentLegend(attribute=names(SP.ll@data[,zcol]),
+
+      ## Changed names(SP.ll@data[,zcol]) to names(SP.ll@data[zcol]) to handle case where zcol is 1 column
+      pp <- segmentLegend(attribute=names(SP.ll@data[zcol]),
                           colPalette=colPalette,
                           legendName=divLegendImage,
                           border=ifelse(strokeColor=="",NA,strokeColor),

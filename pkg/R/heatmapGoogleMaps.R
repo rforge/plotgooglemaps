@@ -11,6 +11,7 @@ heatmapGoogleMaps <-
            excludeZeroWeights=TRUE,
            heatmapDissipating=FALSE,
            heatmapRadius=.5,
+           heatmapGradient=NULL,
            map.width="100%",
            map.height="100%",
            layerName="",
@@ -52,10 +53,11 @@ heatmapGoogleMaps <-
     
     ## Check new arguments
     if(is.character(weightedColumn) && weightedColumn %in% "") weightedColumn <- NULL   ## Allow weightedColumn=="" to be equivalent to NULL
-    if(!is.null(weightedColumn) && !is.numeric(SP@data[,weightedColumn])) stop("weightedColumn must be a numeric field in SP")
+    if(!is.null(weightedColumn) && any("data" %in% slotNames(SP)) && !is.numeric(SP@data[,weightedColumn])) stop("weightedColumn must be a numeric field in SP")
     if(!is.logical(excludeZeroWeights)) stop("excludeZeroWeights must be TRUE or FALSE")
     if(!is.logical(heatmapDissipating)) stop("heatmapDissipating must be TRUE or FALSE")
     if(!is.numeric(heatmapRadius)) stop("heatmapRadius must be a numeric value in pixels")
+    if(!is.null(heatmapGradient) && !is.character(heatmapGradient) && !is.numeric(heatmapGradient)) stop("heatmapGradient must either be NULL or a vector of valid R colors to use for the heatmap gradient")
     
     if(!is.logical(layerNameEnabled)) {
       warning("layerNameEnabled must be TRUE to show map layer on map load or FALSE to hide map layer. Using default of TRUE")
@@ -156,6 +158,19 @@ heatmapGoogleMaps <-
                       '<script language="javascript"> \n ',sep='')
     starthtm <- paste(starthtm, fjs)
     
+    
+    ## Did caller specify a user-defined heatmap gradient?
+    if(!is.null(heatmapGradient)) {
+      ## Repeat first color and set to transparent
+      rgbamat <- grDevices::col2rgb(col = c(heatmapGradient[1],heatmapGradient),alpha = TRUE)
+      rgbamat["alpha",1] <- 0
+      gradient <- apply(rgbamat,MARGIN = 2,
+                        FUN = function(thisRgba) {
+                          return(sprintf("'rgba(%d,%d,%d,%d)'",thisRgba[1],thisRgba[2],thisRgba[3],thisRgba[4]/255))
+                        })
+      gradient <- paste0("gradient: [\n",paste0(gradient,collapse = ",\n"),"\n]\n")
+    }
+    
     ################################################################################
     randNum <- sample(1:10000, 1)
     
@@ -189,12 +204,13 @@ heatmapGoogleMaps <-
       var <- paste(var,var1,"]; \n",sep="")
       
       ## Create heatmap layer with any options
-      var <- paste(var,"\n",
-                   "var ",pointsName," = new google.maps.visualization.HeatmapLayer({ \n",
-                   "  data: ",pointsName,"Data, \n",
-                   "  dissipating: ",tolower(as.character(heatmapDissipating)),",\n",
-                   "  radius: ",heatmapRadius,"\n",
-                   "}); \n",sep="")
+      var <- paste0(var,"\n",
+                    "var ",pointsName," = new google.maps.visualization.HeatmapLayer({ \n",
+                    "  data: ",pointsName,"Data, \n",
+                    "  dissipating: ",tolower(as.character(heatmapDissipating)),",\n",
+                    "  radius: ",heatmapRadius,
+                    ifelse(!is.null(heatmapGradient),paste0(",\n",gradient),"\n"),
+                    "}); \n")
       
       ## If layerNameEnabled is FALSE, hide this map layer on load
       functions <- paste(functions,
@@ -290,7 +306,8 @@ heatmapGoogleMaps <-
                    "var ",pointsName," = new google.maps.visualization.HeatmapLayer({ \n",
                    "  data: ",pointsName,"Data, \n",
                    "  dissipating: ",tolower(as.character(heatmapDissipating)),",\n",
-                   "  radius: ",heatmapRadius,"\n",
+                   "  radius: ",heatmapRadius,
+                   ifelse(!is.null(heatmapGradient),paste0(",\n",gradient),"\n"),
                    "}); \n",sep="")
       
       ## If layerNameEnabled is FALSE, hide this map layer on load

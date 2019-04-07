@@ -12,6 +12,7 @@ heatmapGoogleMaps(SP,
                   excludeZeroWeights=TRUE,
                   heatmapDissipating=FALSE,
                   heatmapRadius=.5,
+                  heatmapGradient=NULL,
                   map.width="100\%",
                   map.height="100\%",
                   layerName="",
@@ -61,6 +62,7 @@ heatmapGoogleMaps(SP,
   \item{excludeZeroWeights}{logical; if TRUE zero values are excluded from weightedColumn}
   \item{heatmapDissipating}{logical; specifies whether heatmaps dissipate on zoom. When dissipating is false the radius of influence increases with zoom level to ensure that the color intensity is preserved at any given geographic location. Defaults to false. (Source: Google heatmap API documentation)}
   \item{heatmapRadius}{the radius of influence for each data point, in pixels (Source: Google heatmap API documentation)}
+  \item{heatmapGradient}{NULL to use Google default gradient colors or a vector of gradient colors to use: first color for areas of lowest intensity, last color for areas of highest density}
   \item{map.width}{the width of the map. Can be in percent or in pixels (px)}
   \item{map.height}{the height of the map. Can be in percent or in pixels (px)}
   \item{layerName}{the name of the layer. Layer name appears on the check box for
